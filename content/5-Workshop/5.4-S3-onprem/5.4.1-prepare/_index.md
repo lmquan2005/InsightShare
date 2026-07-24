@@ -1,57 +1,99 @@
 ---
-title : "Prepare the environment"
-date : 2024-01-01
-weight : 1
-chapter : false
-pre : " <b> 5.4.1 </b> "
+title: "Write the Lambda function"
+date: 2026-07-29
+weight: 1
+chapter: false
+pre: " <b> 5.4.1 </b> "
 ---
 
-To prepare for this part of the workshop you will need to:
-+ Deploying a CloudFormation stack 
-+ Modifying a VPC route table. 
+#### Goal
 
-These components work together to simulate on-premises DNS forwarding and name resolution.
+One **Python Lambda function** for InsightShare's back-end. A single function dispatches all routes by HTTP method and path: upload, list, search, analyze, ask, get, delete.
 
-#### Deploy the CloudFormation stack
+#### Create the function
 
-The CloudFormation template will create additional services to support an on-premises simulation:
-+ One Route 53 Private Hosted Zone that hosts Alias records for the PrivateLink S3 endpoint
-+ One Route 53 Inbound Resolver endpoint that enables "VPC Cloud" to resolve inbound DNS resolution requests to the Private Hosted Zone
-+ One Route 53 Outbound Resolver endpoint that enables "VPC On-prem" to forward DNS requests for S3 to "VPC Cloud"
+Create a Lambda function in region `ap-southeast-1`:
 
-![route 53 diagram](/images/5-Workshop/5.4-S3-onprem/route53.png)
+- **Runtime**: Python 3.13
+- **Handler**: `lambda_function.handler`
+- **Execution role**: `insightshare-lambda-role` (least-privilege, created in section 5.5)
+- **Timeout**: 30s, **Memory**: 256 MB
+- **Environment variables**: `BUCKET=insightshare-files-khang-2352464`, `TABLE=insightshare-files`
 
-1. Click the following link to open the [AWS CloudFormation console](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?templateURL=https://s3.amazonaws.com/reinvent-endpoints-builders-session/R53CF.yaml&stackName=PLOnpremSetup). The required template will be pre-loaded into the menu. Accept all default and click Create stack.
+With the AWS CLI:
 
-![Create stack](/images/5-Workshop/5.4-S3-onprem/create-stack.png)
+```bash
+aws lambda create-function \
+  --function-name insightshare-api \
+  --runtime python3.13 \
+  --role arn:aws:iam::<account-id>:role/insightshare-lambda-role \
+  --handler lambda_function.handler \
+  --zip-file fileb://function.zip \
+  --timeout 30 --memory-size 256 \
+  --environment "Variables={BUCKET=insightshare-files-khang-2352464,TABLE=insightshare-files}"
+```
 
-![Button](/images/5-Workshop/5.4-S3-onprem/create-stack-button.png)
+The function overview shows the API Gateway trigger wired to the function:
 
-It may take a few minutes for stack deployment to complete. You can continue with the next step without waiting for the deployemnt to finish.
+![Lambda function created](/images/5-Workshop/5.4-serverless-backend/lambda-function.png)
 
-#### Update on-premise private route table
+#### The handler
 
-This workshop uses a strongSwan VPN running on an EC2 instance to simulate connectivty between an on-premises datacenter and the AWS cloud. Most of the required components are provisioned before your start. To finalize the VPN configuration, you will modify the "VPC On-prem" routing table to direct traffic destined for the cloud to the strongSwan VPN instance.
+The handler reads the HTTP method and path from the API Gateway event (payload format v2) and routes to the right function. `boto3` ships with the Lambda runtime, so no extra packaging is needed.
 
-1. Open the Amazon EC2 console 
+```python
+def handler(event, context):
+    method = event["requestContext"]["http"]["method"]
+    path = event.get("rawPath", "/")
+    parts = [p for p in path.split("/") if p]
 
-2. Select the instance named infra-vpngw-test. From the Details tab, copy the Instance ID and paste this into your text editor
+    if parts == ["files"] and method == "POST":
+        return create_upload(event)
+    if parts == ["files"] and method == "GET":
+        return list_files(event)
+    if parts == ["files", "search"] and method == "GET":
+        return search_files(event)
+    if len(parts) == 3 and parts[2] == "analyze" and method == "POST":
+        return analyze(event, parts[1])
+    if len(parts) == 3 and parts[2] == "ask" and method == "POST":
+        return ask_document(event, parts[1])
+    if len(parts) == 2 and parts[0] == "files" and method == "GET":
+        return get_file(event, parts[1])
+    if len(parts) == 2 and parts[0] == "files" and method == "DELETE":
+        return delete_file(event, parts[1])
+    return _resp(404, {"error": "route not found"})
+```
 
-![ec2 id](/images/5-Workshop/5.4-S3-onprem/ec2-onprem-id.png)
+The upload handler generates a presigned URL (section 5.3.2) and writes the initial metadata row:
 
-3. Navigate to the VPC menu by using the Search box at the top of the browser window.
+```python
+def create_upload(event):
+    body = json.loads(event.get("body") or "{}")
+    file_id = uuid.uuid4().hex
+    key = f"{file_id}/{body['filename']}"
+    put_url = s3.generate_presigned_url(
+        "put_object",
+        Params={"Bucket": BUCKET, "Key": key, "ContentType": body["content_type"]},
+        ExpiresIn=900,
+    )
+    table.put_item(Item={
+        "id": file_id, "filename": body["filename"],
+        "content_type": body["content_type"], "s3_key": key,
+        "labels": [], "text": "", "search_blob": body["filename"].lower(),
+        "uploaded_at": int(time.time()),
+    })
+    return _resp(200, {"id": file_id, "upload_url": put_url, "key": key})
+```
 
-4. Click on Route Tables, select the RT Private On-prem route table, select the Routes tab, and click Edit Routes.
+#### Deploy & test
 
-![rt](/images/5-Workshop/5.4-S3-onprem/rt.png)
+Package the single file and test it with a fake API Gateway event:
 
-5. Click Add route.
-+ Destination: your Cloud VPC cidr range
-+ Target: ID of your infra-vpngw-test instance (you saved in your editor at step 1)
+```bash
+zip function.zip lambda_function.py
+aws lambda invoke --function-name insightshare-api \
+  --payload file://event.json --cli-binary-format raw-in-base64-out out.json
+cat out.json
+```
 
-![add route](/images/5-Workshop/5.4-S3-onprem/add-route.png)
-
-6. Click Save changes
-
-
-
+The first invoke returned HTTP 200 with a real presigned URL and a matching DynamoDB row, confirming both the S3 and DynamoDB permissions work.

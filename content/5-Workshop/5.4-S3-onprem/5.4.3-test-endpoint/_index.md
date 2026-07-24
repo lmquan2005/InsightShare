@@ -1,59 +1,75 @@
 ---
-title : "Test the Interface Endpoint"
-date : 2024-01-01
-weight : 3
-chapter : false
-pre : " <b> 5.4.3 </b> "
+title: "Integrate DynamoDB metadata"
+date: 2026-07-29
+weight: 3
+chapter: false
+pre: " <b> 5.4.3 </b> "
 ---
 
-#### Get the regional DNS name of S3 interface endpoint
-1. From the Amazon VPC menu, choose Endpoints.
+#### Goal
 
-2. Click the name of newly created endpoint: s3-interface-endpoint. Click details and save the regional DNS name of the endpoint (the first one) to your text-editor for later use. 
+Store each file's **metadata** in **Amazon DynamoDB** so InsightShare can list, search and manage files. The AI labels and extracted text also live here, which is what makes content-based search possible.
 
-![dns name](/images/5-Workshop/5.4-S3-onprem/dns.png)
+#### Create the DynamoDB table
 
+Open the DynamoDB console (region `ap-southeast-1`) and choose **Create table**:
 
-#### Connect to EC2 instance in "VPC On-prem"
+- **Table name**: `insightshare-files`
+- **Partition key**: `id` (String)
+- No sort key
+- Capacity mode: **On-demand** (`PAY_PER_REQUEST`), no capacity to tune
 
-1. Navigate to **Session manager** by typing "session manager" in the search box 
+![DynamoDB table](/images/5-Workshop/5.4-serverless-backend/dynamodb-table.png)
 
-2. Click **Start Session**, and select the EC2 instance named **Test-Interface-Endpoint**. This EC2 instance is running in "VPC On-prem" and will be used to test connectivty to Amazon S3 through the Interface endpoint we just created. Session Manager will open a new browser tab with a shell prompt: **sh-4.2 $**
+CLI equivalent:
 
-![Start session](/images/5-Workshop/5.4-S3-onprem/start-session.png)
-
-3. Change to the ssm-user's home directory with command "cd ~"
-
-4. Create a file named testfile2.xyz
+```bash
+aws dynamodb create-table --table-name insightshare-files \
+  --attribute-definitions AttributeName=id,AttributeType=S \
+  --key-schema AttributeName=id,KeyType=HASH \
+  --billing-mode PAY_PER_REQUEST
 ```
-fallocate -l 1G testfile2.xyz
+
+#### Metadata attributes
+
+Each item stores one file's information:
+
+- `id` : primary key (a unique hex id)
+- `filename`, `content_type`, `s3_key` : original name, MIME type, key in S3
+- `labels` : list of AI labels (from Rekognition)
+- `text` : extracted text (from Textract, or the file content for `.txt`)
+- `search_blob` : lowercase labels + text, used for content search
+- `size`, `uploaded_at` : object size (from the S3 `head_object`) and upload timestamp
+
+#### Wire Lambda to DynamoDB
+
+Lambda uses the `boto3` DynamoDB resource. `put_item` on upload, `update_item` after AI analysis, and `scan` for list/search:
+
+```python
+ddb = boto3.resource("dynamodb", region_name="ap-southeast-1")
+table = ddb.Table("insightshare-files")
+
+table.update_item(
+    Key={"id": file_id},
+    UpdateExpression="SET labels=:l, #t=:t, search_blob=:s",
+    ExpressionAttributeNames={"#t": "text"},
+    ExpressionAttributeValues={
+        ":l": labels, ":t": text,
+        ":s": (" ".join(labels) + " " + text).lower(),
+    },
+)
 ```
 
-![user](/images/5-Workshop/5.4-S3-onprem/cli1.png)
+Note the `ExpressionAttributeNames={"#t": "text"}`: `text` is a DynamoDB reserved word, so it must be aliased in the update expression.
 
+#### Test
 
-5. Copy file to the same S3 bucket we created in section 3.2
+Call the upload API, then confirm a new item appears:
 
+```bash
+aws dynamodb scan --table-name insightshare-files --select COUNT
 ```
-aws s3 cp --endpoint-url https://bucket.<Regional-DNS-Name> testfile2.xyz s3://<your-bucket-name>
-``` 
-+ This command requires the --endpoint-url parameter, because you need to use the endpoint-specific DNS name to access S3 using an Interface endpoint.
-+ Do not include the leading ' * ' when copying/pasting the regional DNS name.
-+ Provide your S3 bucket name created earlier
 
-![copy file](/images/5-Workshop/5.4-S3-onprem/cli2.png)
-
-
-Now the file has been added to your S3 bucket. Let check your S3 bucket in the next step.
-
-#### Check Object in S3 bucket
-
-1. Navigate to S3 console
-2. Click Buckets
-3. Click the name of your bucket and you will see testfile2.xyz has been added to your bucket
-
-![check bucket](/images/5-Workshop/5.4-S3-onprem/check-bucket.png)
-
-
-
-
+{{% notice info %}}
+**Technical note.** The execution role granted `PutItem`/`GetItem`/`Query`/`Scan` but not `UpdateItem`, so `analyze` returned `AccessDeniedException ... not authorized to perform: dynamodb:UpdateItem`. Adding `dynamodb:UpdateItem` (and `s3:ListBucket`) to the role's policy resolves it. A running Lambda caches its credentials, so an IAM policy change takes effect only after the function is updated to spin up a fresh execution environment.
+{{% /notice %}}

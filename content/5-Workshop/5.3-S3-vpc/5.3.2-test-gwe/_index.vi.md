@@ -1,82 +1,66 @@
 ---
-title : "Kiểm tra Gateway Endpoint"
-date : 2024-01-01 
-weight : 2
-chapter : false
-pre : " <b> 5.3.2 </b> "
+title: "Sinh & test presigned URL"
+date: 2026-07-29
+weight: 2
+chapter: false
+pre: " <b> 5.3.2 </b> "
 ---
 
-#### Tạo S3 bucket
+#### Presigned URL là gì
 
-1. Đi đến S3 management console
-2. Trong Bucket console, chọn **Create bucket**
+**Presigned URL** là đường dẫn có chữ ký trỏ tới một object trong S3, hiệu lực trong thời gian giới hạn, để trình duyệt tải lên/tải xuống trực tiếp trong khi bucket vẫn private.
 
-![Create bucket](/images/5-Workshop/5.3-S3-vpc/create-bucket.png)
+#### Sinh presigned URL bằng boto3
 
-3. Trong Create bucket console
-+ Đặt tên bucket: chọn 1 tên mà không bị trùng trong phạm vi toàn cầu (gợi ý: lab\<số-lab\>\<tên-bạn\>)
+Lambda tạo S3 client rồi sinh URL PUT để upload và URL GET để download, hết hạn sau 15 phút (`PRESIGN_EXPIRY = 900`).
 
-![Bucket name](/images/5-Workshop/5.3-S3-vpc/bucket-name.png)
+```python
+from botocore.config import Config
 
+s3 = boto3.client(
+    "s3",
+    region_name="ap-southeast-1",
+    endpoint_url="https://s3.ap-southeast-1.amazonaws.com",
+    config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
+)
 
-+ Giữ nguyên giá trị của các fields khác (default)
-+ Kéo chuột xuống và chọn **Create bucket**
+put_url = s3.generate_presigned_url(
+    "put_object",
+    Params={"Bucket": BUCKET, "Key": key, "ContentType": content_type},
+    ExpiresIn=900,
+)
 
-![Create](/images/5-Workshop/5.3-S3-vpc/create-button.png)    
+get_url = s3.generate_presigned_url(
+    "get_object",
+    Params={"Bucket": BUCKET, "Key": key},
+    ExpiresIn=900,
+)
+```
 
-+ Tạo thành công S3 bucket
-
-![Success](/images/5-Workshop/5.3-S3-vpc/bucket-success.png)
-
-#### Kết nối với EC2 bằng session manager
-
-+ Trong workshop này, bạn sẽ dùng AWS Session Manager để kết nối đến các EC2 instances. Session Manager là 1 tính năng trong dịch vụ Systems Manager được quản lý hoàn toàn bởi AWS. System manager cho phép bạn quản lý Amazon EC2 instances và các máy ảo on-premises (VMs)thông qua 1 browser-based shell. Session Manager cung cấp khả năng quản lý phiên bản an toàn và có thể kiểm tra mà không cần mở cổng vào, duy trì máy chủ bastion host hoặc quản lý khóa SSH.
-
-+ First Cloud AI Journey [Lab](https://000058.awsstudygroup.com/1-introduce/) để hiểu sâu hơn về Session manager.
-
-1. Trong AWS Management Console, gõ Systems Manager trong ô tìm kiếm và nhấn Enter:
-
-![system manager](/images/5-Workshop/5.3-S3-vpc/sm.png)
-
-2. Từ **Systems Manager** menu, tìm **Node Management** ở thanh bên trái và chọn **Session Manager**:
-
-![system manager](/images/5-Workshop/5.3-S3-vpc/sm1.png)
-
-3. Click Start Session, và chọn EC2 instance tên **Test-Gateway-Endpoint**. 
 {{% notice info %}}
-Phiên bản EC2 này đã chạy trong "VPC cloud" và sẽ được dùng để kiểm tra khả năng kết nối với Amazon S3 thông qua điểm cuối Cổng mà bạn vừa tạo (s3-gwe). {{% /notice %}}
+**Ghi chú kỹ thuật.** S3 client mặc định dùng endpoint toàn cầu (`s3.amazonaws.com`), trả về **HTTP 307** khi upload lên bucket ở Singapore. Ép endpoint theo region kèm Signature V4 (như trên) để upload trả về HTTP 200.
+{{% /notice %}}
 
-![Start session](/images/5-Workshop/5.3-S3-vpc/start-session.png)
+#### Test upload qua presigned URL
 
-Session Manager sẽ mở browser tab mới với shell prompt: sh-4.2 $
+Xin URL upload, rồi PUT file lên URL đó:
 
-![Success](/images/5-Workshop/5.3-S3-vpc/start-session-success.png)
+```bash
+curl -X POST "$API/files" -H "Content-Type: application/json" \
+  -d '{"filename":"test.txt","content_type":"text/plain"}'
 
-Bạn đã bắt đầu phiên kết nối đến EC2 trong VPC Cloud thành công. Trong bước tiếp theo, chúng ta sẽ tạo một  S3 bucket và một tệp trong đó.
-#### Create a file and upload to s3 bucket
+curl -X PUT "<upload_url>" -H "Content-Type: text/plain" \
+  --data-binary @test.txt -w "HTTP %{http_code}\n"
+```
 
-1. Đổi về ssm-user's thư mục bằng lệnh "cd ~" 
+#### Kiểm tra object trong S3
 
-![Change user's dir](/images/5-Workshop/5.3-S3-vpc/cli1.png)
+Xác nhận file đã vào bucket:
 
-2. Tạo 1 file để kiểm tra bằng lệnh "fallocate -l 1G testfile.xyz", 1 file tên "testfile.xyz" có kích thước 1GB sẽ được tạo.
-
-![Create file](/images/5-Workshop/5.3-S3-vpc/cli-file.png)
-
-3. Tải file mình vừa tạo lên S3 với lệnh "aws s3 cp testfile.xyz s3://your-bucket-name". Thay your-bucket-name bằng tên S3 bạn đã tạo.
-
-![Uploaded](/images/5-Workshop/5.3-S3-vpc/uploaded.png)
-
-Bạn đã tải thành công tệp lên bộ chứa S3 của mình. Bây giờ bạn có thể kết thúc session.
-
-#### Kiểm tra object trong S3 bucket
-
-1. Đi đến S3 console.  
-2. Click tên s3 bucket của bạn
-3. Trong Bucket console, bạn sẽ thấy tệp bạn đã tải lên S3 bucket của mình
-
-![Check S3](/images/5-Workshop/5.3-S3-vpc/check-s3-bucket.png)
+```bash
+aws s3 ls s3://insightshare-files-khang-2352464/ --recursive
+```
 
 #### Tóm tắt
 
-Chúc mừng bạn đã hoàn thành truy cập S3 từ VPC. Trong phần này, bạn đã tạo gateway endpoint cho Amazon S3 và sử dụng AWS CLI để tải file lên. Quá trình tải lên hoạt động vì gateway endpoint cho phép giao tiếp với S3 mà không cần Internet gateway gắn vào "VPC Cloud". Điều này thể hiện chức năng của gateway endpoint như một đường dẫn an toàn đến S3 mà không cần đi qua pub    lic Internet.
+Tầng lưu trữ dùng bucket private kèm CORS; file đi qua presigned URL mà bucket không bao giờ public. Cùng cơ chế này sinh URL GET để download và chia sẻ.

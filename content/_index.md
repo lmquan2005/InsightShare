@@ -1,40 +1,33 @@
 ---
 title: "Internship Report"
-date: 2024-01-01
+date: 2026-06-29
 weight: 1
 chapter: false
 ---
-
-    
 # Internship Report
 
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy verbatim** for your report, including this warning.
-{{% /notice %}}
-
 ### Student Information:
-&emsp; **Full Name:** Nguyen Van A
+&emsp; **Full Name:** Lai Minh Quan
 
-&emsp; **Phone Number:** 0989888999 
+&emsp; **Phone Number:** 0346296192
 
-&emsp; **Email:** Anguyenvan@gmail.com
+&emsp; **Email:** quangquan2005@gmail.com
 
-&emsp; **University:** Ho Chi Minh City University of Technology and Education
+&emsp; **University:** Ho Chi Minh City University of Technology 
 
-&emsp; **Major:** Information Technology
+&emsp; **Major:** Computer Science
 
-&emsp; **Class:** AWS082025
+&emsp; **FCAJ Group:** AWS062026
 
 &emsp; **Internship Company:** Amazon Web Services Viet Nam Company Limited
 
 &emsp; **Internship Position:** Workforce Bootcamp - First Cloud AI Journey
 
-&emsp; **Internship Duration:** From 12/08/2025 to 12/11/2025
+&emsp; **Internship Duration:** From 15/06/2026 to 07/08/2026
 
-![Your profile picture](/images/avatar.png)
+![Lai Minh Quan](/images/avatar2.jpg)
 
 ### Report Content
-
 1.  [Worklog](1-Worklog/)
 2.  [Proposal](2-Proposal/)
 3.  [BlogsPosted](3-BlogsPosted/)

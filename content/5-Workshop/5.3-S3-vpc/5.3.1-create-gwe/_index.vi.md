@@ -1,40 +1,62 @@
 ---
-title : "Tạo một Gateway Endpoint"
-date : 2024-01-01 
-weight : 1
-chapter : false
-pre : " <b> 5.3.1 </b> "
+title: "Tạo S3 bucket & cấu hình"
+date: 2026-07-29
+weight: 1
+chapter: false
+pre: " <b> 5.3.1 </b> "
 ---
 
-1. Mở [Amazon VPC console](https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#Home:)
-2. Trong thanh điều hướng, chọn **Endpoints**, click **Create Endpoint**:
+#### Tạo S3 bucket
 
-{{% notice note %}}
-Bạn sẽ thấy 6 điểm cuối VPC hiện có hỗ trợ AWS Systems Manager (SSM). Các điểm cuối này được Mẫu CloudFormation triển khai tự động cho workshop này.
-{{% /notice %}}
+Mở **S3 console** (region `ap-southeast-1`) và chọn **Create bucket**:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/endpoints.png)
+- **Bucket name**: `insightshare-files-khang-2352464` (tên S3 là duy nhất toàn cầu, nên thêm hậu tố cá nhân để tránh trùng).
+- **Region**: Asia Pacific (Singapore) `ap-southeast-1`.
+- **Block Public Access**: giữ **tick cả 4 ô** (bucket phải ở chế độ private).
+- **Bucket Versioning**: **Enable** (giữ các phiên bản cũ của object).
 
-3. Trong Create endpoint console:
-+ Đặt tên cho endpoint: s3-gwe
-+ Trong service category, chọn **aws services**
+Sau khi tạo, bucket mở ra ở trạng thái trống:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/create-s3-gwe1.png)
+![Đã tạo S3 bucket](/images/5-Workshop/5.3-S3-storage/s3-bucket-created.png)
 
-+ Trong **Services**, gõ "s3" trong hộp tìm kiếm và chọn dịch vụ với loại **gateway**
+Có thể kiểm tra lại cấu hình bằng CLI:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/services.png)
+```bash
+aws s3api get-bucket-location --bucket insightshare-files-khang-2352464
 
-+ Đối với VPC, chọn **VPC Cloud** từ drop-down menu.
-+ Đối với Route tables, chọn bảng định tuyến mà đã liên kết với 2 subnets (lưu ý: đây không phải là bảng định tuyến chính cho VPC mà là bảng định tuyến thứ hai do CloudFormation tạo).
+aws s3api get-public-access-block --bucket insightshare-files-khang-2352464
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/vpc.png)
+aws s3api get-bucket-versioning --bucket insightshare-files-khang-2352464
+```
 
-+ Đối với Policy, để tùy chọn mặc định là Full access để cho phép toàn quyền truy cập vào dịch vụ. Bạn sẽ triển khai VPC endpoint policy trong phần sau để chứng minh việc hạn chế quyền truy cập vào S3 bucket dựa trên các policies.
+#### Cấu hình CORS
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/policy.png)
+Trình duyệt tải file trực tiếp lên và tải xuống từ S3 qua presigned URL. Để làm được điều đó, bucket phải cho phép yêu cầu cross-origin. Áp cấu hình CORS sau (mức demo cho phép mọi origin; khi lên production nên giới hạn `AllowedOrigins` về đúng domain web):
 
-+ Không thêm tag vào VPC endpoint.
-+ Click Create endpoint, click x sau khi nhận được thông báo tạo thành công.
+```json
+{
+  "CORSRules": [
+    {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "PUT"],
+      "AllowedOrigins": ["*"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
+```
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/complete.png)
+Áp và kiểm tra bằng CLI:
+
+```bash
+aws s3api put-bucket-cors --bucket insightshare-files-khang-2352464 \
+  --cors-configuration file://cors.json
+
+aws s3api get-bucket-cors --bucket insightshare-files-khang-2352464
+```
+
+#### Ghi chú
+
+- Object được lưu theo tiền tố `{file_id}/{filename}`, nên mỗi file nằm trong thư mục riêng đặt theo id duy nhất.
+- Lambda đọc tên bucket `insightshare-files-khang-2352464` từ biến môi trường `BUCKET`.

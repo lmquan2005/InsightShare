@@ -1,32 +1,33 @@
 ---
-title : "Clean up"
-date : 2024-01-01
-weight : 6
-chapter : false
-pre : " <b> 5.6. </b> "
+title: "Clean up"
+date: 2026-07-29
+weight: 6
+chapter: false
+pre: " <b> 5.6. </b> "
 ---
-Congratulations on completing this workshop! 
-In this workshop, you learned architecture patterns for accessing Amazon S3 without using the Public Internet. 
-+ By creating a gateway endpoint, you enabled direct communication between EC2 resources and Amazon S3, without traversing an Internet Gateway. 
-+ By creating an interface endpoint you extended S3 connectivity to resources running in your on-premises data center via AWS Site-to-Site VPN or Direct Connect. 
 
-#### clean up
-1. Navigate to Hosted Zones on the left side of Route 53 console. Click the name of *s3.us-east-1.amazonaws.com* zone. Click Delete and confirm deletion by typing delete. 
+#### Clean up resources
 
-![hosted zone](/images/5-Workshop/5.6-Cleanup/delete-zone.png)
+Delete everything created in the workshop to stop any further charges (region `ap-southeast-1`). The teardown is scripted in `cleanup-aws.ps1`, which removes every resource in one run (with a `-Force` flag to skip the confirmation prompt). It deletes, in order: the API Gateway HTTP API, the Lambda function, the DynamoDB table, both S3 buckets (files and web), the CloudFront distribution, the CloudWatch alarms/dashboard/log group, and the IAM role. The equivalent CLI commands:
 
-2. Disassociate the Route 53 Resolver Rule - myS3Rule from "VPC Onprem" and Delete it. 
+```bash
+aws apigatewayv2 delete-api --api-id <api-id>
 
-![hosted zone](/images/5-Workshop/5.6-Cleanup/vpc.png)
+aws lambda delete-function --function-name insightshare-api
 
-4. Open the CloudFormation console  and delete the two CloudFormation Stacks that you created for this lab:
-+ PLOnpremSetup
-+ PLCloudSetup
+aws dynamodb delete-table --table-name insightshare-files
 
-![delete stack](/images/5-Workshop/5.6-Cleanup/delete-stack.png)
+aws s3 rm s3://insightshare-files-khang-2352464 --recursive
+aws s3api delete-bucket --bucket insightshare-files-khang-2352464
+aws s3 rm s3://insightshare-web-khang-2352464 --recursive
+aws s3api delete-bucket --bucket insightshare-web-khang-2352464
 
-5. Delete S3 buckets
-+ Open S3 console
-+ Choose the bucket we created for the lab, click and confirm empty. Click delete and confirm delete.
+aws cloudfront delete-distribution --id <dist-id> --if-match <etag>
 
-![delete s3](/images/5-Workshop/5.6-Cleanup/delete-s3.png)
+aws cloudwatch delete-alarms --alarm-names insightshare-lambda-errors insightshare-lambda-throttles
+aws cloudwatch delete-dashboards --dashboard-names insightshare-monitoring
+aws logs delete-log-group --log-group-name /aws/lambda/insightshare-api
+
+aws iam delete-role-policy --role-name insightshare-lambda-role --policy-name insightshare-lambda-permissions
+aws iam delete-role --role-name insightshare-lambda-role
+```

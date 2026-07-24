@@ -1,57 +1,29 @@
 ---
 title: "Week 1 Worklog"
-date: 2024-01-01
+date: 2026-06-15
 weight: 1
 chapter: false
 pre: " <b> 1.1. </b> "
 ---
-{{% notice warning %}} 
-⚠️ **Note:** The following information is for reference purposes only. Please **do not copy verbatim** for your own report, including this warning.
-{{% /notice %}}
 
+### Week 1 objectives
 
-### Week 1 Objectives:
+* Get familiar with the FCAJ program, rules and attendance process.
+* Grasp AWS fundamentals: service groups, pricing model and Free Tier.
+* Set up an AWS account and get started with the Console and AWS CLI.
 
-* Connect and get acquainted with members of First Cloud AI Journey.
-* Understand basic AWS services, how to use the console & CLI.
+### Tasks during the week (15/06 - 19/06/2026)
 
-### Tasks to be carried out this week:
-| Day | Task                                                                                                                                                                                                   | Start Date | Completion Date | Reference Material                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | --------------- | ----------------------------------------- |
-| 2   | - Get acquainted with FCAJ members <br> - Read and take note of internship unit rules and regulations                                                                                                   | 08/11/2025 | 08/11/2025      |
-| 3   | - Learn about AWS and its types of services <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                              | 08/12/2025 | 08/12/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Create AWS Free Tier account <br> - Learn about AWS Console & AWS CLI <br> - **Practice:** <br>&emsp; + Create AWS account <br>&emsp; + Install & configure AWS CLI <br> &emsp; + How to use AWS CLI | 08/13/2025 | 08/13/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Learn basic EC2: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - SSH connection methods to EC2 <br> - Learn about Elastic IP   <br>                            | 08/14/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Practice:** <br>&emsp; + Launch an EC2 instance <br>&emsp; + Connect via SSH <br>&emsp; + Attach an EBS volume                                                                                     | 08/15/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
+| Day | Task | Start | End | Reference |
+| --- | --- | --- | --- | --- |
+| Mon | Read the FCAJ rules; learn the Portal registration, attendance process and points/seal system. | 15/06/2026 | 15/06/2026 | [FCAJ rules](https://hcm-rules.awsfcaj.com/) |
+| Tue | Study AWS overview: Compute, Storage, Database, Networking and the pay-as-you-go pricing model. | 16/06/2026 | 16/06/2026 | [Module 1](https://cloudjourney.awsstudygroup.com/1-explore/) |
+| Wed | Create an AWS Free Tier account; install and configure AWS CLI (Access Key, Secret Key, region). | 17/06/2026 | 17/06/2026 | [Cloud Journey](https://cloudjourney.awsstudygroup.com/) |
+| Thu | Practice basic CLI commands: `aws sts get-caller-identity`, list regions, verify configuration. | 18/06/2026 | 18/06/2026 | [AWS CLI](https://docs.aws.amazon.com/cli/) |
+| Fri | Set up the bilingual Hugo report skeleton; get familiar with Markdown and draw.io for architecture diagrams. | 19/06/2026 | 19/06/2026 | [Hugo](https://gohugo.io/) |
 
+### Results achieved
 
-### Week 1 Achievements:
-
-* Understood what AWS is and mastered the basic service groups: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Successfully created and configured an AWS Free Tier account.
-
-* Became familiar with the AWS Management Console and learned how to find, access, and use services via the web interface.
-
-* Installed and configured AWS CLI on the computer, including:
-  * Access Key
-  * Secret Key
-  * Default Region
-  * ...
-
-* Used AWS CLI to perform basic operations such as:
-
-  * Check account & configuration information
-  * Retrieve the list of regions
-  * View EC2 service
-  * Create and manage key pairs
-  * Check information about running services
-  * ...
-
-* Acquired the ability to connect between the web interface and CLI to manage AWS resources in parallel.
-* ...
+1. Understood the attendance process and how the FCAJ program runs.
+2. Grasped basic AWS service groups and the pay-as-you-go pricing model.
+3. Completed AWS account setup, CLI configuration and the bilingual report skeleton.

@@ -1,95 +1,97 @@
 ---
-title : "VPC Endpoint Policies"
-date : 2024-01-01
-weight : 5
-chapter : false
-pre : " <b> 5.5 </b> "
+title: "Giám sát & Bảo mật (CloudWatch + IAM)"
+date: 2026-07-29
+weight: 5
+chapter: false
+pre: " <b> 5.5. </b> "
 ---
 
-Khi bạn tạo một Interface Endpoint  hoặc cổng, bạn có thể đính kèm một chính sách điểm cuối để kiểm soát quyền truy cập vào dịch vụ mà bạn đang kết nối. Chính sách VPC Endpoint là chính sách tài nguyên IAM mà bạn đính kèm vào điểm cuối. Nếu bạn không đính kèm chính sách khi tạo điểm cuối, thì AWS sẽ đính kèm chính sách mặc định cho bạn để cho phép toàn quyền truy cập vào dịch vụ thông qua điểm cuối.
+#### Tổng quan
 
-Bạn có thể tạo chính sách chỉ hạn chế quyền truy cập vào các S3 bucket cụ thể. Điều này hữu ích nếu bạn chỉ muốn một số Bộ chứa S3 nhất định có thể truy cập được thông qua điểm cuối.
+Hai mảng cuối: **giám sát** (CloudWatch) và **bảo mật** (IAM least-privilege).
 
-Trong phần này, bạn sẽ tạo chính sách VPC Endpoint hạn chế quyền truy cập vào S3 bucket được chỉ định trong chính sách VPC Endpoint.
+#### Giám sát với CloudWatch
 
-![endpoint diagram](/images/5-Workshop/5.5-Policy/s3-bucket-policy.png)
+- **CloudWatch Logs**: Lambda tự động ghi vào log group `/aws/lambda/insightshare-api`. Đây chính là nơi các lỗi runtime lúc phát triển hiện ra (các lỗi `Decimal`, presigned URL và IAM đều được chẩn đoán từ log này).
+- **CloudWatch Metrics**: Lambda phát Invocations, Errors, Duration; API Gateway phát request count và số 4xx/5xx.
+- **CloudWatch Alarm**: hai alarm được tạo trên function `insightshare-api`. `insightshare-lambda-errors` kích hoạt khi metric `Errors` của Lambda chạm ngưỡng; `insightshare-lambda-throttles` kích hoạt khi function bị throttle.
 
-#### Kết nối tới EC2 và xác minh kết nối tới S3. 
+```bash
+aws cloudwatch put-metric-alarm \
+  --alarm-name insightshare-lambda-errors \
+  --namespace AWS/Lambda --metric-name Errors \
+  --dimensions Name=FunctionName,Value=insightshare-api \
+  --statistic Sum --period 300 --evaluation-periods 1 \
+  --threshold 1 --comparison-operator GreaterThanOrEqualToThreshold
 
-1. Bắt đầu một phiên AWS Session Manager mới trên máy chủ có tên là Test-Gateway-Endpoint. Từ phiên này, xác minh rằng bạn có thể liệt kê nội dung của bucket mà bạn đã tạo trong Phần 1: Truy cập S3 từ VPC.
-
+aws cloudwatch put-metric-alarm \
+  --alarm-name insightshare-lambda-throttles \
+  --namespace AWS/Lambda --metric-name Throttles \
+  --dimensions Name=FunctionName,Value=insightshare-api \
+  --statistic Sum --period 300 --evaluation-periods 1 \
+  --threshold 1 --comparison-operator GreaterThanOrEqualToThreshold
 ```
-aws s3 ls s3://<your-bucket-name>
+
+- **CloudWatch Dashboard**: dashboard `insightshare-monitoring` gom các khung theo dõi vào một chỗ. Nó có ba widget: Lambda invocations/errors, Lambda duration, và request count của API Gateway.
+
+```bash
+aws cloudwatch put-dashboard \
+  --dashboard-name insightshare-monitoring \
+  --dashboard-body file://dashboard.json
 ```
-![test](/images/5-Workshop/5.5-Policy/test1.png)
 
-Nội dung của bucket bao gồm hai tệp có dung lượng 1GB đã được tải lên trước đó.
+#### Bảo mật với IAM (least-privilege)
 
-2. Tạo một bucket S3 mới; tuân thủ mẫu đặt tên mà bạn đã sử dụng trong Phần 1, nhưng thêm '-2' vào tên. Để các trường khác là mặc định và nhấp vào **Create**.
+Lambda dùng một execution role riêng least-privilege, `insightshare-lambda-role`, được xác nhận đang hoạt động (mục "Last activity" cập nhật mỗi khi function chạy):
 
-![create bucket](/images/5-Workshop/5.5-Policy/create-bucket.png)
+![Execution role IAM](/images/5-Workshop/5.5-Policy/iam-role.png)
 
-3. Tạo bucket thành công.
+Policy gắn kèm chỉ cấp đúng những gì từng dịch vụ cần. S3 và DynamoDB được giới hạn theo ARN bucket và bảng cụ thể (không dùng `"Resource": "*"`); các action AI dùng `"*"` vì Rekognition, Textract và Bedrock không hỗ trợ phân quyền theo tài nguyên (Bedrock có thể giới hạn tùy chọn theo ARN của foundation model Claude):
 
-![Success](/images/5-Workshop/5.5-Policy/create-bucket-success.png)
-
-Policy mặc định cho phép truy cập vào tất cả các S3 Buckets thông qua VPC endpoint.
-
-4. Trong giao diện **Edit Policy**, sao chép và dán theo policy sau, thay thế yourbucketname-2 với tên bucket thứ hai của bạn. Policy này sẽ cho phép truy cập đến bucket mới thông qua VPC endpoint, nhưng không cho phép truy cập đến các bucket còn lại. Chọn **Save** để kích hoạt policy.
-
-
-```
+```json
 {
-  "Id": "Policy1631305502445",
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Stmt1631305501021",
-      "Action": "s3:*",
+      "Sid": "S3ObjectAccess",
       "Effect": "Allow",
-      "Resource": [
-      				"arn:aws:s3:::yourbucketname-2",
-       				"arn:aws:s3:::yourbucketname-2/*"
-       ],
-      "Principal": "*"
+      "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
+      "Resource": "arn:aws:s3:::insightshare-files-khang-2352464/*"
+    },
+    {
+      "Sid": "S3ListBucket",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket"],
+      "Resource": "arn:aws:s3:::insightshare-files-khang-2352464"
+    },
+    {
+      "Sid": "DynamoDBAccess",
+      "Effect": "Allow",
+      "Action": ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem",
+                 "dynamodb:Query", "dynamodb:Scan", "dynamodb:DeleteItem"],
+      "Resource": "arn:aws:dynamodb:ap-southeast-1:*:table/insightshare-files"
+    },
+    {
+      "Sid": "AIServices",
+      "Effect": "Allow",
+      "Action": ["rekognition:DetectLabels",
+                 "textract:DetectDocumentText", "bedrock:InvokeModel"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Logging",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:ap-southeast-1:*:*"
     }
   ]
 }
 ```
 
-![custom policy](/images/5-Workshop/5.5-Policy/policy2.png)
+{{% notice note %}}
+Tập quyền được tinh chỉnh trong lúc test thật: `dynamodb:UpdateItem` và `s3:ListBucket` được thêm sau khi `analyze` báo `AccessDeniedException`. Đây là least-privilege trong thực tế: bắt đầu hẹp, rồi cấp đúng action còn thiếu thay vì mở quyền rộng.
+{{% /notice %}}
 
-Cấu hình policy thành công.
+#### Tóm tắt
 
-![success](/images/5-Workshop/5.5-Policy/success.png)
-
-5. Từ session của bạn trên Test-Gateway-Endpoint instance, kiểm tra truy cập đến S3 bucket bạn tạo ở bước đầu
-
-```
-aws s3 ls s3://<yourbucketname>
-```
-
-Câu lệnh trả về lỗi bởi vì truy cập vào S3 bucket không có quyền trong VPC endpoint policy.
-
-![error](/images/5-Workshop/5.5-Policy/error.png)
-
-6. Trở lại home directory của bạn trên EC2 instance ```cd~```
-
-+ Tạo file ```fallocate -l 1G test-bucket2.xyz ```
-+ Sao chép file lên bucket thứ  2 ```aws s3 cp test-bucket2.xyz s3://<your-2nd-bucket-name>```
-
-![success](/images/5-Workshop/5.5-Policy/test2.png)
-
-Thao tác này được cho phép bởi VPC endpoint policy.
-
-![success](/images/5-Workshop/5.5-Policy/test2-success.png)
-
-Sau đó chúng ta kiểm tra truy cập vào S3 bucket đầu tiên
-
- ```aws s3 cp test-bucket2.xyz s3://<your-1st-bucket-name>```
-
- ![fail](/images/5-Workshop/5.5-Policy/test2-fail.png)
-
- Câu lệnh xảy ra lỗi bởi vì bucket không có quyền truy cập bởi VPC endpoint policy.
-
-Trong phần này, bạn đã tạo chính sách VPC Endpoint cho Amazon S3 và sử dụng AWS CLI để kiểm tra chính sách. Các hoạt động AWS CLI liên quan đến bucket S3 ban đầu của bạn thất bại vì bạn áp dụng một chính sách chỉ cho phép truy cập đến bucket thứ hai mà bạn đã tạo. Các hoạt động AWS CLI nhắm vào bucket thứ hai của bạn thành công vì chính sách cho phép chúng. Những chính sách này có thể hữu ích trong các tình huống khi bạn cần kiểm soát quyền truy cập vào tài nguyên thông qua VPC Endpoint.
+InsightShare được giám sát bằng CloudWatch (log group `/aws/lambda/insightshare-api`, hai alarm `insightshare-lambda-errors` và `insightshare-lambda-throttles`, dashboard `insightshare-monitoring`) và bảo mật bằng IAM role giới hạn đúng tài nguyên cần dùng.

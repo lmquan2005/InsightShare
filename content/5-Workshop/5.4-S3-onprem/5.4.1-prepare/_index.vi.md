@@ -1,58 +1,76 @@
 ---
-title : "Chuẩn bị tài nguyên"
-date : 2024-01-01
-weight : 1
-chapter : false
-pre : " <b> 5.4.1 </b> "
+title: "Create the API Gateway"
+date: 2026-07-29
+weight: 2
+chapter: false
+pre: " <b> 5.4.2 </b> "
 ---
 
-Để chuẩn bị cho phần này của workshop, bạn sẽ cần phải:
-+ Triển khai CloudFormation stack
-+ Sửa đổi bảng định tuyến VPC.
+#### Goal
 
-Các thành phần này hoạt động cùng nhau để mô phỏng DNS forwarding và name resolution.
+Create an **API Gateway (HTTP API)** as the public entry point through which the frontend calls Lambda. HTTP API is cheaper and simpler than REST API and is enough here.
 
-#### Triển khai CloudFormation stack
+#### Create the API
 
-Mẫu CloudFormation sẽ tạo các dịch vụ bổ sung để hỗ trợ mô phỏng môi trường truyền thống:
-+ Một Route 53 Private Hosted Zone lưu trữ các bản ghi Bí danh (Alias records) cho điểm cuối PrivateLink S3
-+ Một Route 53 Inbound Resolver endpoint cho phép "VPC Cloud" giải quyết các yêu cầu resolve DNS gửi đến Private Hosted Zone
-+ Một Route 53 Outbound Resolver endpoint cho phép "VPC On-prem" chuyển tiếp các yêu cầu DNS cho S3 sang "VPC Cloud"
+Because the Lambda already dispatches by method and path internally, a single **`$default`** route forwarding everything to Lambda is all that is needed:
 
-![route 53 diagram](/images/5-Workshop/5.4-S3-onprem/route53.png)
+```bash
+aws apigatewayv2 create-api \
+  --name insightshare-api \
+  --protocol-type HTTP \
+  --target arn:aws:lambda:ap-southeast-1:<account-id>:function:insightshare-api \
+  --cors-configuration "AllowOrigins=*,AllowMethods=GET,POST,DELETE,OPTIONS,AllowHeaders=*"
+```
 
-1. Click link sau để mở [AWS CloudFormation console](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/quickcreate?templateURL=https://s3.amazonaws.com/reinvent-endpoints-builders-session/R53CF.yaml&stackName=PLOnpremSetup). Mẫu yêu cầu sẽ được tải sẵn vào menu. Chấp nhận tất cả mặc định và nhấp vào Tạo stack.
+Using `--target` auto-creates the Lambda integration, the `$default` route and the `$default` stage (auto-deploy). Then grant API Gateway permission to invoke the Lambda:
 
-![Create stack](/images/5-Workshop/5.4-S3-onprem/create-stack.png)
+```bash
+aws lambda add-permission \
+  --function-name insightshare-api \
+  --statement-id apigw-invoke \
+  --action lambda:InvokeFunction \
+  --principal apigateway.amazonaws.com \
+  --source-arn "arn:aws:execute-api:ap-southeast-1:<account-id>:<api-id>/*/*"
+```
 
-![Button](/images/5-Workshop/5.4-S3-onprem/create-stack-button.png)
+The Routes view shows the single `$default` route managed by API Gateway, integrated with the Lambda:
 
-Có thể mất vài phút để triển khai stack hoàn tất. Bạn có thể tiếp tục với bước tiếp theo mà không cần đợi quá trình triển khai kết thúc.
+![API Gateway routes](/images/5-Workshop/5.4-serverless-backend/apigateway-routes.png)
 
-####  Cập nhật bảng định tuyến private on-premise 
+#### Routes handled by the Lambda
 
-Workshop này sử dụng StrongSwan VPN chạy trên EC2 instance để mô phỏng khả năng kết nối giữa trung tâm dữ liệu truyền thống và môi trường cloud AWS. Hầu hết các thành phần bắt buộc đều được cung cấp trước khi bạn bắt đầu. Để hoàn tất cấu hình VPN, bạn sẽ sửa đổi bảng định tuyến "VPC on-prem" để hướng lưu lượng đến cloud đi qua StrongSwan VPN instance.
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/files` | Request a presigned upload URL + create metadata |
+| POST | `/files/{id}/analyze` | Run Rekognition/Textract on the uploaded object |
+| POST | `/files/{id}/ask` | Ask a question about the document (Bedrock/Claude, Vietnamese) |
+| POST | `/ask` | Ask across the whole library (Bedrock/Claude, with source files) |
+| GET | `/files` | List all files |
+| GET | `/files/search?q=` | Content search over labels + extracted text |
+| GET | `/files/{id}` | One file's metadata + presigned download URL |
+| DELETE | `/files/{id}` | Delete the object + metadata |
 
-1. Mở Amazon EC2 console 
+#### Test the API
 
-2. Chọn instance tên infra-vpngw-test. Từ Details tab, copy Instance ID và paste vào text editor của bạn để sử dụng ở những bước tiếp theo
+```bash
+API="https://<api-id>.execute-api.ap-southeast-1.amazonaws.com"
 
-![ec2 id](/images/5-Workshop/5.4-S3-onprem/ec2-onprem-id.png)
+curl -X POST "$API/files" -H "Content-Type: application/json" \
+  -d '{"filename":"hello.txt","content_type":"text/plain"}'
 
-3. Đi đến VPC menu bằng cách gõ "VPC" vào Search box
+curl "$API/files"
+```
 
-4. Click vào Route Tables, chọn RT Private On-prem route table, chọn Routes tab, và click Edit Routes.
+{{% notice info %}}
+**Technical note.** DynamoDB returns numbers (such as `uploaded_at`) as Python `Decimal`, which `json.dumps` cannot serialize, producing `Object of type Decimal is not JSON serializable`. A custom JSON encoder converts `Decimal` to `int`/`float` and is used in every response.
 
-![rt](/images/5-Workshop/5.4-S3-onprem/rt.png)
+```python
+class _DecimalEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return int(o) if o % 1 == 0 else float(o)
+        return super().default(o)
+```
+{{% /notice %}}
 
-5. Click Add route.
-+ Destination: CIDR block của Cloud VPC
-+ Target: ID của infra-vpngw-test instance (bạn đã lưu lại ở bước trên)
-
-![add route](/images/5-Workshop/5.4-S3-onprem/add-route.png)
-
-6. Click Save changes
-
-
-
-
+After the fix, `GET /files` and `GET /files/search?q=` both return clean JSON.

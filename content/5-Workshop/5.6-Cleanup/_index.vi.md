@@ -1,37 +1,33 @@
 ---
-title : "Dọn dẹp tài nguyên"
-date : 2024-01-01
-weight : 6
-chapter : false
-pre : " <b> 5.6. </b> "
+title: "Dọn dẹp tài nguyên"
+date: 2026-07-29
+weight: 6
+chapter: false
+pre: " <b> 5.6. </b> "
 ---
 
 #### Dọn dẹp tài nguyên
 
-Xin chúc mừng bạn đã hoàn thành xong lab này!
-Trong lab này, bạn đã học về các mô hình kiến trúc để truy cập Amazon S3 mà không sử dụng Public Internet.
+Xóa toàn bộ tài nguyên đã tạo trong workshop để dừng phát sinh chi phí (region `ap-southeast-1`). Việc dọn dẹp được script hóa trong `cleanup-aws.ps1`, xóa mọi tài nguyên trong một lần chạy (có cờ `-Force` để bỏ qua bước hỏi xác nhận). Script xóa lần lượt: API Gateway HTTP API, hàm Lambda, bảng DynamoDB, cả hai bucket S3 (files và web), CloudFront distribution, các alarm/dashboard/log group của CloudWatch, và IAM role. Các lệnh CLI tương đương:
 
-+ Bằng cách tạo Gateway endpoint, bạn đã cho phép giao tiếp trực tiếp giữa các tài nguyên EC2 và Amazon S3, mà không đi qua Internet Gateway.
-Bằng cách tạo Interface endpoint, bạn đã mở rộng kết nối S3 đến các tài nguyên chạy trên trung tâm dữ liệu trên chỗ của bạn thông qua AWS Site-to-Site VPN hoặc Direct Connect.
+```bash
+aws apigatewayv2 delete-api --api-id <api-id>
 
-#### Dọn dẹp
-1. Điều hướng đến Hosted Zones trên phía trái của bảng điều khiển Route 53. Nhấp vào tên của  s3.us-east-1.amazonaws.com zone. Nhấp vào Delete và xác nhận việc xóa bằng cách nhập từ khóa "delete".
+aws lambda delete-function --function-name insightshare-api
 
-![hosted zone](/images/5-Workshop/5.6-Cleanup/delete-zone.png)
+aws dynamodb delete-table --table-name insightshare-files
 
-2. Disassociate Route 53 Resolver Rule - myS3Rule from "VPC Onprem" and Delete it. 
+aws s3 rm s3://insightshare-files-khang-2352464 --recursive
+aws s3api delete-bucket --bucket insightshare-files-khang-2352464
+aws s3 rm s3://insightshare-web-khang-2352464 --recursive
+aws s3api delete-bucket --bucket insightshare-web-khang-2352464
 
-![hosted zone](/images/5-Workshop/5.6-Cleanup/vpc.png)
+aws cloudfront delete-distribution --id <dist-id> --if-match <etag>
 
-4.Mở console của CloudFormation và xóa hai stack CloudFormation mà bạn đã tạo cho bài thực hành này:
-+ PLOnpremSetup
-+ PLCloudSetup
+aws cloudwatch delete-alarms --alarm-names insightshare-lambda-errors insightshare-lambda-throttles
+aws cloudwatch delete-dashboards --dashboard-names insightshare-monitoring
+aws logs delete-log-group --log-group-name /aws/lambda/insightshare-api
 
-![delete stack](/images/5-Workshop/5.6-Cleanup/delete-stack.png)
-
-5. Xóa các S3 bucket
-
-+ Mở bảng điều khiển S3
-+ Chọn bucket chúng ta đã tạo cho lab, nhấp chuột và xác nhận là empty. Nhấp Delete và xác nhận delete.
-+ 
-![delete s3](/images/5-Workshop/5.6-Cleanup/delete-s3.png)
+aws iam delete-role-policy --role-name insightshare-lambda-role --policy-name insightshare-lambda-permissions
+aws iam delete-role --role-name insightshare-lambda-role
+```

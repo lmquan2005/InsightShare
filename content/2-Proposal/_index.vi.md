@@ -1,108 +1,145 @@
 ---
 title: "Bản đề xuất"
-date: 2024-01-01
+date: 2026-06-20
 weight: 2
 chapter: false
 pre: " <b> 2. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
 
-Tại phần này, bạn cần tóm tắt các nội dung trong workshop mà bạn **dự tính** sẽ làm.
+# InsightShare
+## Nền tảng chia sẻ ảnh & tài liệu thông minh trên AWS (serverless + AI)
 
-# IoT Weather Platform for Lab Research  
-## Giải pháp AWS Serverless hợp nhất cho giám sát thời tiết thời gian thực  
+### 1. Tóm tắt
 
-### 1. Tóm tắt điều hành  
-IoT Weather Platform được thiết kế dành cho nhóm *ITea Lab* tại TP. Hồ Chí Minh nhằm nâng cao khả năng thu thập và phân tích dữ liệu thời tiết. Nền tảng hỗ trợ tối đa 5 trạm thời tiết, có khả năng mở rộng lên 10–15 trạm, sử dụng thiết bị biên Raspberry Pi kết hợp cảm biến ESP32 để truyền dữ liệu qua MQTT. Nền tảng tận dụng các dịch vụ AWS Serverless để cung cấp giám sát thời gian thực, phân tích dự đoán và tiết kiệm chi phí, với quyền truy cập giới hạn cho 5 thành viên phòng lab thông qua Amazon Cognito.  
+InsightShare là một ứng dụng web để tải lên, phân tích và chia sẻ ảnh/tài liệu. Khi file được tải lên, các dịch vụ AI của AWS hiểu nội dung: gắn nhãn ảnh, trích văn bản từ tài liệu, và trả lời câu hỏi hoặc tóm tắt tài liệu bằng tiếng Việt, nhờ đó người dùng tìm file theo nội dung thay vì chỉ theo tên. Toàn bộ theo kiến trúc **serverless** trên AWS (region `ap-southeast-1`): không phải quản lý máy chủ, tính phí theo lượt gọi nên chi phí lúc nhàn rỗi nhỏ, tự mở rộng theo tải. Nền tảng dùng S3, Lambda, API Gateway, DynamoDB, CloudFront cùng ba dịch vụ AI Rekognition, Textract và Bedrock (Claude).
 
-### 2. Tuyên bố vấn đề  
-*Vấn đề hiện tại*  
-Các trạm thời tiết hiện tại yêu cầu thu thập dữ liệu thủ công, khó quản lý khi có nhiều trạm. Không có hệ thống tập trung cho dữ liệu hoặc phân tích thời gian thực, và các nền tảng bên thứ ba thường tốn kém và quá phức tạp.  
+### 2. Tuyên bố vấn đề
 
-*Giải pháp*  
-Nền tảng sử dụng AWS IoT Core để tiếp nhận dữ liệu MQTT, AWS Lambda và API Gateway để xử lý, Amazon S3 để lưu trữ (bao gồm data lake), và AWS Glue Crawlers cùng các tác vụ ETL để trích xuất, chuyển đổi, tải dữ liệu từ S3 data lake sang một S3 bucket khác để phân tích. AWS Amplify với Next.js cung cấp giao diện web, và Amazon Cognito đảm bảo quyền truy cập an toàn. Tương tự như Thingsboard và CoreIoT, người dùng có thể đăng ký thiết bị mới và quản lý kết nối, nhưng nền tảng này hoạt động ở quy mô nhỏ hơn và phục vụ mục đích sử dụng nội bộ. Các tính năng chính bao gồm bảng điều khiển thời gian thực, phân tích xu hướng và chi phí vận hành thấp.  
+*Vấn đề*
+- Người dùng cần một cách nhanh để lưu và chia sẻ ảnh/tài liệu, nhưng giải pháp tự dựng máy chủ (EC2 chạy 24/7) tốn chi phí cố định kể cả khi nhàn rỗi và phải tự vận hành, vá lỗi, mở rộng.
+- Khi số lượng file tăng, việc tìm lại đúng file rất khó vì chỉ tìm được theo tên.
+- Tìm được tài liệu rồi thì vẫn phải mở ra đọc mới biết bên trong nói gì.
 
-*Lợi ích và hoàn vốn đầu tư (ROI)*  
-Giải pháp tạo nền tảng cơ bản để các thành viên phòng lab phát triển một nền tảng IoT lớn hơn, đồng thời cung cấp nguồn dữ liệu cho những người nghiên cứu AI phục vụ huấn luyện mô hình hoặc phân tích. Nền tảng giảm bớt báo cáo thủ công cho từng trạm thông qua hệ thống tập trung, đơn giản hóa quản lý và bảo trì, đồng thời cải thiện độ tin cậy dữ liệu. Chi phí hàng tháng ước tính 0,66 USD (theo AWS Pricing Calculator), tổng cộng 7,92 USD cho 12 tháng. Tất cả thiết bị IoT đã được trang bị từ hệ thống trạm thời tiết hiện tại, không phát sinh chi phí phát triển thêm. Thời gian hoàn vốn 6–12 tháng nhờ tiết kiệm đáng kể thời gian thao tác thủ công.  
+*Giải pháp*
+InsightShare tập trung dữ liệu và xử lý trên một stack serverless thống nhất:
+- **Lưu trữ & chia sẻ:** S3 lưu file (bucket private), chia sẻ qua presigned URL có thời hạn; metadata lưu trong DynamoDB.
+- **Xử lý nghiệp vụ:** Lambda + API Gateway sinh presigned URL, điều phối phân tích AI, ghi/đọc dữ liệu.
+- **Hiểu nội dung bằng AI:** Rekognition gắn nhãn ảnh, Textract trích văn bản tài liệu, và Bedrock (một model Claude) trả lời câu hỏi và tóm tắt tài liệu bằng tiếng Việt. Tất cả đều là dịch vụ gọi sẵn, không huấn luyện mô hình.
+- **Tìm kiếm thông minh:** nhãn và văn bản trích được lưu vào DynamoDB để tìm file theo nội dung.
 
-### 3. Kiến trúc giải pháp  
-Nền tảng áp dụng kiến trúc AWS Serverless để quản lý dữ liệu từ 5 trạm dựa trên Raspberry Pi, có thể mở rộng lên 15 trạm. Dữ liệu được tiếp nhận qua AWS IoT Core, lưu trữ trong S3 data lake và xử lý bởi AWS Glue Crawlers và ETL jobs để chuyển đổi và tải vào một S3 bucket khác cho mục đích phân tích. Lambda và API Gateway xử lý bổ sung, trong khi Amplify với Next.js cung cấp bảng điều khiển được bảo mật bởi Cognito.  
+*Lợi ích & ROI*
+- **Tập trung:** lưu trữ, chia sẻ và phân tích trên một nền tảng duy nhất, giảm thao tác thủ công.
+- **Thông minh:** tự gắn nhãn, trích text, hỏi đáp tài liệu và tìm kiếm theo nội dung, bổ sung trên nền lưu trữ.
+- **Chi phí thấp:** mô hình serverless trả theo lượng dùng; các dịch vụ AI nằm trong Free Tier ở mức demo, tổng chi phí dưới 1 USD/tháng.
+- **Tin cậy & bảo mật:** file không public, IAM least-privilege, giám sát bằng CloudWatch.
+- Là nền tảng học tập thực tế về kiến trúc serverless kết hợp AI, có thể mở rộng thành sản phẩm lớn hơn.
 
-![IoT Weather Station Architecture](/images/2-Proposal/edge_architecture.jpeg)
+### 3. Kiến trúc giải pháp
 
-![IoT Weather Platform Architecture](/images/2-Proposal/platform_architecture.jpeg)
+*Tổng quan*
+Trình duyệt tải giao diện tĩnh từ **S3 + CloudFront (HTTPS)** → gọi **API Gateway** → **Lambda (Python)**. Lambda sinh presigned URL để trình duyệt upload/download trực tiếp với **S3**. Sau khi upload, Lambda gọi các dịch vụ AI (**Rekognition / Textract / Bedrock**) và lưu kết quả vào **DynamoDB** phục vụ tìm kiếm. **CloudWatch** giám sát log/metric; **IAM** kiểm soát quyền theo least-privilege.
 
-*Dịch vụ AWS sử dụng*  
-- *AWS IoT Core*: Tiếp nhận dữ liệu MQTT từ 5 trạm, mở rộng lên 15.  
-- *AWS Lambda*: Xử lý dữ liệu và kích hoạt Glue jobs (2 hàm).  
-- *Amazon API Gateway*: Giao tiếp với ứng dụng web.  
-- *Amazon S3*: Lưu trữ dữ liệu thô (data lake) và dữ liệu đã xử lý (2 bucket).  
-- *AWS Glue*: Crawlers lập chỉ mục dữ liệu, ETL jobs chuyển đổi và tải dữ liệu.  
-- *AWS Amplify*: Lưu trữ giao diện web Next.js.  
-- *Amazon Cognito*: Quản lý quyền truy cập cho người dùng phòng lab.  
+![Kiến trúc InsightShare](/images/2-Proposal/insightshare_architecture-v2.png)
 
-*Thiết kế thành phần*  
-- *Thiết bị biên*: Raspberry Pi thu thập và lọc dữ liệu cảm biến, gửi tới IoT Core.  
-- *Tiếp nhận dữ liệu*: AWS IoT Core nhận tin nhắn MQTT từ thiết bị biên.  
-- *Lưu trữ dữ liệu*: Dữ liệu thô lưu trong S3 data lake; dữ liệu đã xử lý lưu ở một S3 bucket khác.  
-- *Xử lý dữ liệu*: AWS Glue Crawlers lập chỉ mục dữ liệu; ETL jobs chuyển đổi để phân tích.  
-- *Giao diện web*: AWS Amplify lưu trữ ứng dụng Next.js cho bảng điều khiển và phân tích thời gian thực.  
-- *Quản lý người dùng*: Amazon Cognito giới hạn 5 tài khoản hoạt động.  
+*Dịch vụ AWS sử dụng*
 
-### 4. Triển khai kỹ thuật  
-*Các giai đoạn triển khai*  
-Dự án gồm 2 phần — thiết lập trạm thời tiết biên và xây dựng nền tảng thời tiết — mỗi phần trải qua 4 giai đoạn:  
-1. *Nghiên cứu và vẽ kiến trúc*: Nghiên cứu Raspberry Pi với cảm biến ESP32 và thiết kế kiến trúc AWS Serverless (1 tháng trước kỳ thực tập).  
-2. *Tính toán chi phí và kiểm tra tính khả thi*: Sử dụng AWS Pricing Calculator để ước tính và điều chỉnh (Tháng 1).  
-3. *Điều chỉnh kiến trúc để tối ưu chi phí/giải pháp*: Tinh chỉnh (ví dụ tối ưu Lambda với Next.js) để đảm bảo hiệu quả (Tháng 2).  
-4. *Phát triển, kiểm thử, triển khai*: Lập trình Raspberry Pi, AWS services với CDK/SDK và ứng dụng Next.js, sau đó kiểm thử và đưa vào vận hành (Tháng 2–3).  
+| Dịch vụ | Vai trò |
+|---|---|
+| Amazon S3 | Lưu file người dùng; host giao diện web tĩnh |
+| Amazon CloudFront | CDN phân phối web, HTTPS, tăng tốc |
+| Amazon API Gateway | Cổng API công khai cho ứng dụng |
+| AWS Lambda | Xử lý nghiệp vụ (Python/boto3); một handler điều hướng request API Gateway HTTP API theo method và path |
+| Amazon DynamoDB | Lưu metadata + nhãn AI + văn bản trích, phục vụ tìm kiếm |
+| Amazon Rekognition | Gắn nhãn ảnh (DetectLabels) |
+| Amazon Textract | Trích văn bản từ PDF/ảnh chữ (DetectDocumentText) |
+| Amazon Bedrock (Claude) | Hỏi đáp và tóm tắt tài liệu bằng tiếng Việt (InvokeModel) |
+| Amazon CloudWatch | Log, metric, alarm giám sát hệ thống |
+| AWS IAM | Phân quyền least-privilege cho Lambda và từng dịch vụ AI |
 
-*Yêu cầu kỹ thuật*  
-- *Trạm thời tiết biên*: Cảm biến (nhiệt độ, độ ẩm, lượng mưa, tốc độ gió), vi điều khiển ESP32, Raspberry Pi làm thiết bị biên. Raspberry Pi chạy Raspbian, sử dụng Docker để lọc dữ liệu và gửi 1 MB/ngày/trạm qua MQTT qua Wi-Fi.  
-- *Nền tảng thời tiết*: Kiến thức thực tế về AWS Amplify (lưu trữ Next.js), Lambda (giảm thiểu do Next.js xử lý), AWS Glue (ETL), S3 (2 bucket), IoT Core (gateway và rules), và Cognito (5 người dùng). Sử dụng AWS CDK/SDK để lập trình (ví dụ IoT Core rules tới S3). Next.js giúp giảm tải Lambda cho ứng dụng web fullstack.  
+*Thiết kế thành phần*
+- **Frontend:** trang web tĩnh (HTML/JS) chọn file, hiển thị danh sách kèm nhãn AI, ô tìm kiếm theo nội dung, ô đặt câu hỏi về một tài liệu.
+- **API:** các endpoint yêu cầu URL upload, xác nhận upload (kích hoạt phân tích AI), liệt kê/tìm kiếm file, lấy URL download, và hỏi đáp về một tài liệu.
+- **Lưu trữ:** file trong S3; metadata + kết quả AI trong DynamoDB.
+- **Bảo mật:** IAM Role least-privilege; file không public, chỉ truy cập qua presigned URL.
 
-### 5. Lộ trình & Mốc triển khai  
-- *Trước thực tập (Tháng 0)*: 1 tháng lên kế hoạch và đánh giá trạm cũ.  
-- *Thực tập (Tháng 1–3)*:  
-    - Tháng 1: Học AWS và nâng cấp phần cứng.  
-    - Tháng 2: Thiết kế và điều chỉnh kiến trúc.  
-    - Tháng 3: Triển khai, kiểm thử, đưa vào sử dụng.  
-- *Sau triển khai*: Nghiên cứu thêm trong vòng 1 năm.  
+### 4. Triển khai kỹ thuật
 
-### 6. Ước tính ngân sách  
-Có thể xem chi phí trên [AWS Pricing Calculator](https://calculator.aws/#/estimate?id=621f38b12a1ef026842ba2ddfe46ff936ed4ab01)  
-Hoặc tải [tệp ước tính ngân sách](../attachments/budget_estimation.pdf).  
+*Các giai đoạn triển khai*
 
-*Chi phí hạ tầng*  
-- AWS Lambda: 0,00 USD/tháng (1.000 request, 512 MB lưu trữ).  
-- S3 Standard: 0,15 USD/tháng (6 GB, 2.100 request, 1 GB quét).  
-- Truyền dữ liệu: 0,02 USD/tháng (1 GB vào, 1 GB ra).  
-- AWS Amplify: 0,35 USD/tháng (256 MB, request 500 ms).  
-- Amazon API Gateway: 0,01 USD/tháng (2.000 request).  
-- AWS Glue ETL Jobs: 0,02 USD/tháng (2 DPU).  
-- AWS Glue Crawlers: 0,07 USD/tháng (1 crawler).  
-- MQTT (IoT Core): 0,08 USD/tháng (5 thiết bị, 45.000 tin nhắn).  
+| Giai đoạn | Nội dung |
+|---|---|
+| 1. Nền tảng & thiết kế | Học nền tảng AWS, chốt đề tài, vẽ kiến trúc, thiết lập tài khoản an toàn (MFA, IAM user, CLI, Budgets), thiết kế schema DynamoDB. |
+| 2. Ứng dụng cơ bản | Dựng web app (FastAPI + frontend) chạy local, tách lớp lưu trữ và lớp AI. |
+| 3. Đưa lên cloud | S3 + presigned URL, Lambda + API Gateway, tích hợp DynamoDB và link tải bằng presigned URL. |
+| 4. Lớp AI & tìm kiếm | Tích hợp Rekognition/Textract/Bedrock, lưu kết quả vào DynamoDB, xây tìm kiếm thông minh. |
+| 5. Hoàn thiện & vận hành | CloudFront + HTTPS, CloudWatch log/alarm, tối ưu chi phí/bảo mật, một script deploy/dọn dẹp lặp lại được. |
 
-*Tổng*: 0,7 USD/tháng, 8,40 USD/12 tháng  
-- *Phần cứng*: 265 USD một lần (Raspberry Pi 5 và cảm biến).  
+*Yêu cầu kỹ thuật*
+- Tài khoản AWS (Free Tier), region `ap-southeast-1` (Singapore).
+- Công cụ: AWS CLI, Python 3, boto3.
+- Kiến thức: S3, Lambda, API Gateway, DynamoDB, IAM, CloudWatch và các dịch vụ AI (Rekognition, Textract, Bedrock).
 
-### 7. Đánh giá rủi ro  
-*Ma trận rủi ro*  
-- Mất mạng: Ảnh hưởng trung bình, xác suất trung bình.  
-- Hỏng cảm biến: Ảnh hưởng cao, xác suất thấp.  
-- Vượt ngân sách: Ảnh hưởng trung bình, xác suất thấp.  
+### 5. Lộ trình & Mốc triển khai
 
-*Chiến lược giảm thiểu*  
-- Mạng: Lưu trữ cục bộ trên Raspberry Pi với Docker.  
-- Cảm biến: Kiểm tra định kỳ, dự phòng linh kiện.  
-- Chi phí: Cảnh báo ngân sách AWS, tối ưu dịch vụ.  
+| Mốc | Hoạt động |
+|---|---|
+| Chuẩn bị | Chốt kiến trúc, thiết kế DynamoDB, thiết lập tài khoản AWS, viết Proposal |
+| Phát triển lõi | Lưu trữ S3 + presigned URL, back-end Lambda + API Gateway, DynamoDB + link tải presigned |
+| Tích hợp AI | Rekognition + Textract + Bedrock; tìm kiếm thông minh theo nội dung |
+| Hoàn thiện | CloudFront, CloudWatch, tối ưu chi phí/bảo mật, script deploy/dọn dẹp |
+| Vận hành | Giám sát, kiểm thử, rà bảo mật và dọn dẹp tài nguyên |
 
-*Kế hoạch dự phòng*  
-- Quay lại thu thập thủ công nếu AWS gặp sự cố.  
-- Sử dụng CloudFormation để khôi phục cấu hình liên quan đến chi phí.  
+Mốc chính: hoàn thành MVP lưu trữ (upload + link tải) trước; tích hợp lớp AI và tìm kiếm tiếp theo; sau đó hoàn thiện, tối ưu và vận hành.
 
-### 8. Kết quả kỳ vọng  
-*Cải tiến kỹ thuật*: Dữ liệu và phân tích thời gian thực thay thế quy trình thủ công. Có thể mở rộng tới 10–15 trạm.  
-*Giá trị dài hạn*: Nền tảng dữ liệu 1 năm cho nghiên cứu AI, có thể tái sử dụng cho các dự án tương lai.
+### 6. Ước tính ngân sách
+
+Chi phí ước tính thấp do mô hình serverless tính theo lượt dùng, và các dịch vụ AI nằm trong Free Tier ở mức demo. Số liệu chi tiết sẽ tính bằng [AWS Pricing Calculator](https://calculator.aws/).
+
+| Dịch vụ | Ước tính/tháng |
+| --- | --- |
+| AWS Lambda | ~0,00 USD (trong Free Tier) |
+| Amazon API Gateway | ~0,01 USD |
+| Amazon S3 (lưu trữ + request) | ~0,10-0,20 USD |
+| Amazon DynamoDB (on-demand) | ~0,00-0,05 USD |
+| Amazon CloudFront | ~0,00-0,10 USD |
+| Rekognition + Textract + Bedrock (Claude) | ~0,00-0,50 USD (mức demo, ít lượt gọi) |
+| **Tổng** | **< 1 USD/tháng (mức demo)** |
+
+Đo trên hạ tầng đang chạy, chi phí vận hành thực tế tháng 7/2026 về cơ bản là 0 USD: mọi dịch vụ đều nằm trong Free Tier hoặc theo mô hình pay-per-use, nên một stack nhàn rỗi gần như không tốn gì. Một AWS Budget `InsightShare-Monthly` giới hạn 5 USD/tháng đã được tạo để theo dõi chi tiêu, bên cạnh budget zero-spend có sẵn của tài khoản.
+
+Ở quy mô thật, chi phí tăng theo mức dùng. Ước tính hàng tháng cho **1.000 người dùng** (khoảng 20.000 lượt upload, mỗi lượt phân tích một lần, cùng duyệt và tìm kiếm):
+
+| Dịch vụ | Cơ sở tính | Ước tính/tháng |
+| --- | --- | --- |
+| AWS Lambda | ~120k lượt gọi | ~0,10 USD |
+| Amazon API Gateway | ~120k request HTTP | ~0,12 USD |
+| Amazon S3 | ~40 GB lưu + request | ~1,00 USD |
+| Amazon DynamoDB (on-demand) | ~140k đọc/ghi | ~0,20 USD |
+| Amazon Rekognition | 20k ảnh (DetectLabels) | ~20,00 USD |
+| Amazon Bedrock (Claude Haiku) | ~20k lượt tóm tắt + hỏi đáp | ~15,00 USD |
+| Amazon CloudFront | ~30 GB ra | ~2,50 USD |
+| **Tổng** | | **~40 USD/tháng** |
+
+Ở quy mô lớn, chi phí chủ yếu đến từ các dịch vụ AI (Rekognition, Bedrock), đây là đánh đổi cho việc không phải huấn luyện hay tự vận hành mô hình. Claude Haiku 4.5 là model chi phí thấp nên Bedrock ở đây vẫn ở mức vừa phải. Ở mức demo, chi phí gần 0 vì lượng dùng rất ít.
+
+### 7. Đánh giá rủi ro
+
+| Rủi ro | Tác động | Xác suất | Giảm thiểu |
+|---|---|---|---|
+| Cấu hình IAM/policy sai gây lỗi truy cập | Trung bình | Trung bình | Least-privilege, kiểm thử kỹ trước khi mở rộng quyền |
+| Phát sinh chi phí ngoài dự kiến (gọi AI nhiều) | Thấp | Thấp | Budget Alert, giới hạn kích thước/loại file gửi AI, dọn tài nguyên sau test |
+| File lớn gây timeout Lambda/API Gateway | Trung bình | Thấp | Presigned URL upload trực tiếp S3; gọi AI bất đồng bộ qua S3 event |
+| Dịch vụ AI chậm hoặc kết quả chưa chính xác | Thấp | Trung bình | Phân tích AI bất đồng bộ, file vẫn tải được kể cả khi chưa phân tích xong |
+
+*Kế hoạch dự phòng:* giữ một script dọn dẹp (cleanup-aws.ps1) để xóa toàn bộ tài nguyên nhanh chóng.
+
+### 8. Kết quả kỳ vọng
+
+*Cải tiến kỹ thuật*
+- Ứng dụng web hoạt động end-to-end: upload → tự động phân tích nội dung bằng AI → liệt kê → tìm kiếm theo nội dung → hỏi đáp về một tài liệu → tải qua presigned link.
+- Làm chủ kiến trúc serverless kết hợp các dịch vụ AI managed trên AWS.
+- Hỏi đáp tài liệu bằng Bedrock đã được triển khai đầy đủ và nối đúng; trên tài khoản dạng credit này nó trả về câu dự phòng cho tới khi tài khoản được cấp inference quota on-demand của Bedrock (hiện là 0).
+
+*Giá trị dài hạn*
+- Nền tảng có thể mở rộng: thêm đăng nhập người dùng (Cognito), điều phối pipeline AI nhiều bước (Step Functions), hỗ trợ thêm loại file.
+- Tài liệu workshop chi tiết để người khác có thể làm theo và phát triển tiếp.

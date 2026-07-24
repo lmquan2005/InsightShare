@@ -1,111 +1,97 @@
 ---
-title : "On-premises DNS Simulation"
-date : 2024-01-01
-weight : 4
-chapter : false
-pre : " <b> 5.4.4 </b> "
+title: "Frontend S3 + CloudFront"
+date: 2026-07-29
+weight: 4
+chapter: false
+pre: " <b> 5.4.4 </b> "
 ---
 
-AWS PrivateLink endpoints have a fixed IP address in each Availability Zone where they are deployed, for the life of the endpoint (until it is deleted). These IP addresses are attached to Elastic Network Interfaces (ENIs). AWS recommends using DNS to resolve the IP addresses for endpoints so that downstream applications use the latest IP addresses when ENIs are added to new AZs, or deleted over time.
+#### Goal
 
-In this section, you will create a forwarding rule to send DNS resolution requests from a simulated on-premises environment to a Route 53 Private Hosted Zone. This section leverages the infrastructure deployed by CloudFormation in the Prepare the environment section.
+Serve InsightShare's static web interface from **Amazon S3** and deliver it over **Amazon CloudFront** (HTTPS, CDN).
 
-#### Create DNS Alias Records for the Interface endpoint
-1. Navigate to the [Route 53 management console](https://us-east-1.console.aws.amazon.com/route53/v2/hostedzones?region=us-east-1#) (Hosted Zones section).  The CloudFormation template you deployed in the Prepare the environment section created this Private Hosted Zone. Click on the name of the Private Hosted Zone, s3.us-east-1.amazonaws.com:
+#### The frontend
 
-![hosted zone](/images/5-Workshop/5.4-S3-onprem/hosted-zone.png)
+The interface is a single static `index.html` (vanilla HTML/CSS/JS): it uploads a file, shows the list with AI labels, offers a content-search box, a per-file download link (a presigned GET URL), and a box to ask a question about a document. It talks only to the API Gateway endpoint, so the same page works locally or on CloudFront.
 
-2. Create a new record in the Private Hosted Zone:
+The upload flow in the browser is a two-step call: ask the API for a presigned URL, then PUT the file straight to S3.
 
-![Create record](/images/5-Workshop/5.4-S3-onprem/create-record1.png)
+```javascript
+const r = await fetch(`${API}/files`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ filename: file.name, content_type: file.type }),
+});
+const { id, upload_url } = await r.json();
 
-+ Record name and record type keep default options
-+ Alias Button: Click to enable
-+ Route traffic to: Alias to VPC Endpoint
-+ Region: US East (N. Virginia) [us-east-1]
-+ Choose endpoint: Paste the Regional VPC Endpoint DNS name from your text editor (you saved when doing section 4.3)
+await fetch(upload_url, { method: "PUT",
+  headers: { "Content-Type": file.type }, body: file });
 
-![record1](/images/5-Workshop/5.4-S3-onprem/record1.png)
-
-3. Click Add another record, and add a second record using the following values. Click Create records when finished to create both records.
-+ Record name: *.
-+ Record type: keep default value (type A)
-+ Alias Button: Click to enable
-+ Route traffic to: Alias to VPC Endpoint
-+ Region: US East (N. Virginia) [us-east-1]
-+ Choose endpoint: Paste the Regional VPC Endpoint DNS name from your text editor
-
-![record 2](/images/5-Workshop/5.4-S3-onprem/record2.png)
-
-The new records appear in the Route 53 console:
-
-![result](/images/5-Workshop/5.4-S3-onprem/result.png)
-
-#### Create a Resolver Forwarding Rule
-
-Route 53 Resolver Forwarding Rules allow you to forward DNS queries from your VPC to other sources for name resolution. Outside of a workshop environment, you might use this feature to forward DNS queries from your VPC to DNS servers running on-premises. In this section, you will simulate an on-premises conditional forwarder by creating a forwarding rule that forwards DNS queries for Amazon S3 to a Private Hosted Zone running in "VPC Cloud" in-order to resolve the PrivateLink interface endpoint regional DNS name.
-
-1. From the Route 53 management console, click **Inbound endpoints** on the left side bar
-2. In the Inbound endpoints console, click the ID of the inbound endpoint
-
-![Inbound endpoint](/images/5-Workshop/5.4-S3-onprem/route53-1.png)
-
-3. Copy the two IP addresses listed to your text editor
-
-![Ip addresses](/images/5-Workshop/5.4-S3-onprem/route53-2.png)
-
-4. From the Route 53 menu, choose **Resolver** > **Rules**, and click **Create rule**:
-
-![Ip addresses](/images/5-Workshop/5.4-S3-onprem/route53-3.png)
-
-5. In the Create rule console:
-+ Name: myS3Rule
-+ Rule type: Forward
-+ Domain name: s3.us-east-1.amazonaws.com
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/route53-4.png)
-
-+ VPC: VPC On-prem
-+ Outbound endpoint: VPCOnpremOutboundEndpoint
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/route53-5.png)
-
-+ Target IP Addresses: Enter both IP addresses from your text editor (inbound endpoint addresses) and then click Submit
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/route53-6.png)
-You have successfully created resolver forwarding rule. 
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/route53-7.png)
-
-#### Test the on-premises DNS Simulation
-
-1. Connect to **Test-Interface-Endpoint EC2 instance** with **Session manager**
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/test1.png)
-
-2. Test DNS resolution. The dig command will return the IP addresses assigned to the VPC Interface endpoint running in VPC Cloud (your IP's will be different): dig +short s3.us-east-1.amazonaws.com 
-
-{{% notice note %}}
-The IP addresses returned are the VPC endpoint IP addresses, NOT the Resolver IP addresses you pasted from your text editor. The IP addresses of the Resolver endpoint and the VPC endpoint look similar because they are all from the VPC Cloud CIDR block.
-{{% /notice %}}
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/dig.png)
-
-
-3. Navigate to the VPC menu (Endpoints section), select the S3 Interface endpoint. Click the Subnets tab and verify that the IP addresses returned by Dig match the VPC endpoint:
-
-![create rule](/images/5-Workshop/5.4-S3-onprem/subnet.png)
-
-4. Return to your shell and use the AWS CLI to test listing your S3 buckets:
-
-```
-aws s3 ls --endpoint-url https://s3.us-east-1.amazonaws.com
+await fetch(`${API}/files/${id}/analyze`, { method: "POST" });
 ```
 
-![create rule](/images/5-Workshop/5.4-S3-onprem/endpoint.png)
+Content search is a single call to the search route:
 
-5. Terminate your Session Manager session:
+```javascript
+const res = await fetch(`${API}/files/search?q=` + encodeURIComponent(query));
+render(await res.json());
+```
 
-![create rule](/images/5-Workshop/5.4-S3-onprem/terminal.png)
+Asking a question about a document is one more call to the `ask` route (Bedrock/Claude answers in Vietnamese; an empty question returns a summary):
 
-In this section you created an Interface endpoint for Amazon S3. This endpoint can be reached from on-premises through Site-to-Site VPN or AWS Direct Connect. Route 53 Resolver outbound endpoints simulated forwarding DNS requests from on-premises to a Private Hosted Zone running the cloud. Route 53 inbound Endpoints recieved the resolution request and returned a response containing the IP addresses of the VPC interface endpoint. Using DNS to resolve the endpoint IP addresses provides high availability in-case of an Availability Zone outage.
+```javascript
+const res = await fetch(`${API}/files/${id}/ask`, {
+  method: "POST", headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ question }),
+});
+const { answer } = await res.json();
+```
+
+#### Host the frontend on S3
+
+The static site is hosted on a separate S3 bucket with website hosting enabled:
+
+```bash
+aws s3api create-bucket --bucket insightshare-web-khang-2352464 --region ap-southeast-1 \
+  --create-bucket-configuration LocationConstraint=ap-southeast-1
+aws s3 website s3://insightshare-web-khang-2352464/ --index-document index.html
+aws s3 cp index.html s3://insightshare-web-khang-2352464/index.html --content-type text/html
+```
+
+A public-read bucket policy is applied to this web bucket only (the file bucket in 5.3 stays private). The site is live at:
+
+`http://insightshare-web-khang-2352464.s3-website-ap-southeast-1.amazonaws.com`
+
+#### Distribute through CloudFront
+
+A **CloudFront distribution** was created with the S3 website endpoint as the origin and `ViewerProtocolPolicy` set to `redirect-to-https`, so the site is delivered over HTTPS and the CDN edge cache.
+
+```bash
+aws cloudfront create-distribution \
+  --origin-domain-name insightshare-web-khang-2352464.s3-website-ap-southeast-1.amazonaws.com \
+  --default-root-object index.html
+```
+
+The distribution reached the `Deployed` state and serves the page over HTTPS at:
+
+`https://insightshare.dangthaikhang34.workers.dev`
+
+CloudFront serves the site over HTTPS in front of the S3 origin.
+
+The live site, showing the stats bar, AI labels, thumbnails and label filter:
+
+![InsightShare live site](/images/5-Workshop/5.4-serverless-backend/web-live-v3.png)
+
+#### End-to-end test
+
+The full flow was verified from the deployed web page through API Gateway:
+
+- `POST /files` returned a presigned URL, and `PUT` to it returned **HTTP 200** (file landed in S3).
+- `POST /files/{id}/analyze` returned real Rekognition labels.
+- `GET /files/search?q=diagram` returned the image by its AI label, not its filename.
+- `POST /files/{id}/ask` is wired to return a Vietnamese answer over a `.txt` document (or the token-quota fallback at HTTP 200 while the account's Bedrock inference quota is 0).
+- The same steps run from the browser on the live site, so upload, AI analysis, content search and document Q&A all work end to end on AWS.
+
+#### Summary
+
+InsightShare runs end to end: the static frontend calls API Gateway → Lambda → S3 (presigned URL) + DynamoDB (metadata) + the AI layer. The frontend was built to sit behind CloudFront, and the running demo is hosted at `https://insightshare.dangthaikhang34.workers.dev`.

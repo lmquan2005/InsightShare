@@ -1,57 +1,29 @@
 ---
 title: "Week 6 Worklog"
-date: 2024-01-01
-weight: 1
+date: 2026-07-20
+weight: 6
 chapter: false
 pre: " <b> 1.6. </b> "
 ---
-{{% notice warning %}} 
-⚠️ **Note:** The following information is for reference purposes only. Please **do not copy verbatim** for your own report, including this warning.
-{{% /notice %}}
 
+### Week 6 objectives
 
-### Week 6 Objectives:
+* Learn AWS Glue Data Catalog, Crawlers and ETL Jobs.
+* Practice auto-discovering schemas and transforming data from `raw/` to `processed/`.
+* Clean data: remove nulls, change column types, export Parquet.
 
-* Connect and get acquainted with members of First Cloud AI Journey.
-* Understand basic AWS services, how to use the console & CLI.
+### Tasks during the week (20/07 - 24/07/2026)
 
-### Tasks to be carried out this week:
-| Day | Task                                                                                                                                                                                                   | Start Date | Completion Date | Reference Material                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | --------------- | ----------------------------------------- |
-| 2   | - Get acquainted with FCAJ members <br> - Read and take note of internship unit rules and regulations                                                                                                   | 08/11/2025 | 08/11/2025      |
-| 3   | - Learn about AWS and its types of services <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                              | 08/12/2025 | 08/12/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Create AWS Free Tier account <br> - Learn about AWS Console & AWS CLI <br> - **Practice:** <br>&emsp; + Create AWS account <br>&emsp; + Install & configure AWS CLI <br> &emsp; + How to use AWS CLI | 08/13/2025 | 08/13/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Learn basic EC2: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - SSH connection methods to EC2 <br> - Learn about Elastic IP   <br>                            | 08/14/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Practice:** <br>&emsp; + Launch an EC2 instance <br>&emsp; + Connect via SSH <br>&emsp; + Attach an EBS volume                                                                                     | 08/15/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
+| Day | Task | Start | End | Reference |
+| --- | --- | --- | --- | --- |
+| Mon | Study Glue Data Catalog: databases, tables, partitions; role of crawlers. | 20/07/2026 | 20/07/2026 | [Glue Catalog](https://docs.aws.amazon.com/glue/latest/dg/catalog-and-crawler.html) |
+| Tue | **Practice:** create IAM role, database and crawler pointing to S3 `raw/`; run crawler. | 21/07/2026 | 21/07/2026 | [Glue Crawler](https://docs.aws.amazon.com/glue/latest/dg/add-crawler.html) |
+| Wed | Study Glue ETL Jobs: Spark, DPUs; transforms — drop nulls, rename columns, filter. | 22/07/2026 | 22/07/2026 | [Glue ETL](https://docs.aws.amazon.com/glue/latest/dg/etl-jobs-section.html) |
+| Thu | **Practice:** create ETL job reading raw table, clean data and write Parquet to `processed/`. | 23/07/2026 | 23/07/2026 | [Cloud Journey](https://cloudjourney.awsstudygroup.com/) |
+| Fri | Run job, verify S3 output; re-run crawler to update Catalog metadata. | 24/07/2026 | 24/07/2026 | [Glue Studio](https://docs.aws.amazon.com/glue/latest/ug/what-is-glue-studio.html) |
 
+### Results achieved
 
-### Week 6 Achievements:
-
-* Understood what AWS is and mastered the basic service groups: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Successfully created and configured an AWS Free Tier account.
-
-* Became familiar with the AWS Management Console and learned how to find, access, and use services via the web interface.
-
-* Installed and configured AWS CLI on the computer, including:
-  * Access Key
-  * Secret Key
-  * Default Region
-  * ...
-
-* Used AWS CLI to perform basic operations such as:
-
-  * Check account & configuration information
-  * Retrieve the list of regions
-  * View EC2 service
-  * Create and manage key pairs
-  * Check information about running services
-  * ...
-
-* Acquired the ability to connect between the web interface and CLI to manage AWS resources in parallel.
-* ...
+1. Understood Glue Data Catalog and how crawlers auto-discover schemas.
+2. Created an ETL job transforming raw to processed data with basic cleaning steps.
+3. Exported Parquet data to S3 and updated Catalog metadata.

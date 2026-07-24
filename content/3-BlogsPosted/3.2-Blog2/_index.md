@@ -1,31 +1,27 @@
 ---
 title: "Blog 2"
-date: 2024-01-01
-weight: 1
+date: 2026-07-24
+weight: 2
 chapter: false
 pre: " <b> 3.2. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy verbatim** for your report, including this warning.
-{{% /notice %}}
 
-# SESSION POLICIES IN AMAZON EKS POD IDENTITY
+# AWS STEP FUNCTIONS: ORCHESTRATE MULTI-STEP WORKFLOWS WITHOUT COMPLEX CODE
 
-Amazon EKS Pod Identity has recently added the session policies feature, allowing you to narrow IAM permissions flexibly and precisely for each pod without needing to create many separate IAM roles. This is an important step forward that helps apply the principle of least privilege more effectively in large-scale Kubernetes environments.
+When learning AWS, Lambda often handles one task at a time. But once a workflow grows — validate → process → send email → update DB — Lambda code quickly turns into spaghetti. AWS Step Functions bundles those steps into a clear flow with built-in retry and error handling.
 
 Key points to know:
 
-* A session policy is an inline IAM policy specified when creating or updating a Pod Identity association.
-* Effective permissions = intersection between the IAM role permissions and the session policy → the session policy can only narrow permissions, not expand them.
-* Helps avoid over-permissioning when reusing a single IAM role for multiple workloads with different needs.
-* Supports both same-account and cross-account (via IAM role chaining).
-* Significantly reduces the number of IAM roles that need to be managed, helping avoid hitting IAM quota limits in large clusters.
-* Easily configured through the AWS Management Console, AWS CLI, or AWS SDK when creating an association between a Kubernetes ServiceAccount and an IAM role.
+* **What Step Functions is:** a serverless workflow orchestration service; you define steps (states) in JSON (Amazon States Language) and Step Functions runs them sequentially or in parallel with automatic retries on failure.
+* **Common state types:** Task (invoke Lambda, ECS, SNS, DynamoDB, Bedrock…); Choice (if/else branching); Parallel (run multiple branches at once); Wait (delay); Fail/Succeed (end the workflow).
+* **Two workflow types:** Standard (runs up to 1 year, exactly-once) suits order processing, ETL and approval flows; Express (up to 5 minutes, high throughput) suits IoT, streaming and real-time workloads.
+* **Order processing use case:** API receives an order → Step Functions starts → Lambda validates → Choice checks validity → process + SES email in parallel, or Fail + SNS error notification.
+* **Compared to plain Lambda:** multi-step logic in one function is hard to read and maintain; Step Functions offers a visual graph, built-in retry/error handling, native Parallel states and per-step execution history in the console.
+* **When to use it:** 3+ steps or clear retry/branching needs; Standard for long workflows, Express for short real-time flows; inspect the execution graph in the console for easier debugging than parsing Lambda logs.
 
-This feature is especially useful when you have many applications running on the same IAM role but need different permission restrictions (for example: one pod only reads a specific S3 bucket, another pod only calls certain APIs).
+Step Functions does not replace Lambda — it orchestrates Lambda. When a workflow outgrows a single function, try Step Functions: less code, easier maintenance and retry/error handling included.
 
-...Image...
+**References:**
 
-...Link...
-
-...Guide...
+* [AWS Step Functions – AWS Documentation](https://docs.aws.amazon.com/step-functions/)
+* [Amazon States Language – AWS Documentation](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html)

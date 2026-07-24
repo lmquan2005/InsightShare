@@ -1,95 +1,66 @@
 ---
-title : "Test the Gateway Endpoint"
-date : 2024-01-01 
-weight : 2
-chapter : false
-pre : " <b> 5.3.2 </b> "
+title: "Generate & test the presigned URL"
+date: 2026-07-29
+weight: 2
+chapter: false
+pre: " <b> 5.3.2 </b> "
 ---
 
-#### Create S3 bucket
+#### What is a presigned URL
 
-1. Navigate to **S3 management console**
-2. In the Bucket console, choose **Create bucket**
+A **presigned URL** is a signed link to one S3 object, valid for a limited time, so the browser uploads/downloads directly while the bucket stays private.
 
-![Create bucket](/images/5-Workshop/5.3-S3-vpc/create-bucket.png)
+#### Generate a presigned URL with boto3
 
-3. In **the Create bucket console**
-+ **Name the bucket**: choose a name that hasn't been given to any bucket globally (hint: lab number and your name)
+Lambda creates the S3 client and generates a PUT URL for uploads and a GET URL for downloads, expiring after 15 minutes (`PRESIGN_EXPIRY = 900`).
 
-![Bucket name](/images/5-Workshop/5.3-S3-vpc/bucket-name.png)
+```python
+from botocore.config import Config
 
-+ Leave other fields as they are (default)
-+ Scroll down and choose **Create bucket**
+s3 = boto3.client(
+    "s3",
+    region_name="ap-southeast-1",
+    endpoint_url="https://s3.ap-southeast-1.amazonaws.com",
+    config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
+)
 
-![Create](/images/5-Workshop/5.3-S3-vpc/create-button.png) 
+put_url = s3.generate_presigned_url(
+    "put_object",
+    Params={"Bucket": BUCKET, "Key": key, "ContentType": content_type},
+    ExpiresIn=900,
+)
 
-+ Successfully create S3 bucket.
+get_url = s3.generate_presigned_url(
+    "get_object",
+    Params={"Bucket": BUCKET, "Key": key},
+    ExpiresIn=900,
+)
+```
 
-![Success](/images/5-Workshop/5.3-S3-vpc/bucket-success.png)
-
-#### Connect to EC2 with session manager
-
-+ For this workshop, you will use **AWS Session Manager** to access several **EC2 instances**. **Session Manager** is a fully managed **AWS Systems Manager** capability that allows you to manage your **Amazon EC2 instances**  and on-premises virtual machines (VMs) through an interactive one-click browser-based shell. Session Manager provides secure and auditable instance management without the need to open inbound ports, maintain bastion hosts, or manage SSH keys.
-
-+ First Cloud AI Journey [Lab](https://000058.awsstudygroup.com/1-introduce/) for indepth understanding of Session manager.
-
-1. In the **AWS Management Console**, start typing ```Systems Manager``` in the quick search box and press **Enter**:
-
-![system manager](/images/5-Workshop/5.3-S3-vpc/sm.png)
-
-2. From the **Systems Manager** menu, find **Node Management** in the left menu and click **Session Manager**:
-
-![system manager](/images/5-Workshop/5.3-S3-vpc/sm1.png)
-
-3. Click **Start Session**, and select **the EC2 instance** named **Test-Gateway-Endpoint**. 
 {{% notice info %}}
-This EC2 instance is already running in "VPC Cloud" and will be used to test connectivity to Amazon S3 through the Gateway endpoint you just created (s3-gwe). {{% /notice %}}
+**Technical note.** The default S3 client uses the global endpoint (`s3.amazonaws.com`), which returns **HTTP 307** when uploading to a bucket in Singapore. Pinning the regional endpoint plus Signature V4 (as above) makes the upload return HTTP 200.
+{{% /notice %}}
 
-![Start session](/images/5-Workshop/5.3-S3-vpc/start-session.png)
+#### Test upload through the presigned URL
 
-**Session Manager** will open a new browser tab with a shell prompt: sh-4.2 $
+Request an upload URL, then PUT a file to it:
 
-![Success](/images/5-Workshop/5.3-S3-vpc/start-session-success.png)
+```bash
+curl -X POST "$API/files" -H "Content-Type: application/json" \
+  -d '{"filename":"test.txt","content_type":"text/plain"}'
 
-You have successfully start a session - connect to the EC2 instance in VPC cloud. In the next step, we will create a S3 bucket and a file in it. 
+curl -X PUT "<upload_url>" -H "Content-Type: text/plain" \
+  --data-binary @test.txt -w "HTTP %{http_code}\n"
+```
 
-#### Create a file and upload to s3 bucket
+#### Check the object in S3
 
-1. Change to the ssm-user's home directory by typing ```cd ~``` in the CLI
+Confirm the file landed in the bucket:
 
-![Change user's dir](/images/5-Workshop/5.3-S3-vpc/cli1.png)
+```bash
+aws s3 ls s3://insightshare-files-khang-2352464/ --recursive
+```
 
-2. Create a new file to use for testing with the command ```fallocate -l 1G testfile.xyz```, which will create a file of 1GB size named "testfile.xyz".
+#### Summary
 
-![Create file](/images/5-Workshop/5.3-S3-vpc/cli-file.png)
-
-3. Upload file to S3 bucket with command ```aws s3 cp testfile.xyz s3://your-bucket-name```. Replace your-bucket-name with the name of S3 bucket that you created earlier.
-
-![Uploaded](/images/5-Workshop/5.3-S3-vpc/uploaded.png)
-
-You have successfully uploaded the file to your S3 bucket. You can now terminate the session.
-
-#### Check object in S3 bucket
-
-1. Navigate to S3 console.  
-2. Click the name of your s3 bucket
-3. In the Bucket console, you will see the file you have uploaded to your S3 bucket
-
-![Check S3](/images/5-Workshop/5.3-S3-vpc/check-s3-bucket.png)
-
-#### Section summary
-
-Congratulation on completing access to S3 from VPC. In this section, you created a Gateway endpoint for Amazon S3, and used the AWS CLI to upload an object. The upload worked because the Gateway endpoint allowed communication to S3, without needing an Internet Gateway attached to "VPC Cloud". This demonstrates the functionality of the Gateway endpoint as a secure path to S3 without traversing the Public Internet.
-
-
-
-
-
-
-
-
-
-
-
-
-
+The storage layer uses a private bucket with CORS; files move through presigned URLs without the bucket ever being public. The same mechanism generates GET URLs for downloading and sharing.

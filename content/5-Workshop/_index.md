@@ -1,31 +1,38 @@
 ---
 title: "Workshop"
-date: 2024-01-01
+date: 2026-07-29
 weight: 5
 chapter: false
 pre: " <b> 5. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy verbatim** for your report, including this warning.
-{{% /notice %}}
 
-# Secure Hybrid Access to S3 using VPC Endpoints
+# InsightShare: Building a Serverless Image & Document Sharing Platform with AI on AWS
 
 #### Overview
 
-**AWS PrivateLink** provides private connectivity to AWS services from VPCs and your on-premises networks, without exposing your traffic to the Public Internet.
+**InsightShare** is a web application for uploading, analyzing and sharing images and documents, built entirely on a **serverless** architecture on AWS. Unlike plain storage, the moment a file is uploaded the system uses AWS AI services to understand its content, so users can search their files by what is inside them, not only by filename.
 
-In this lab, you will learn how to create, configure, and test VPC endpoints that enable your workloads to reach AWS services without traversing the Public Internet.
+The build covers:
+- File storage in **Amazon S3** with sharing through time-limited **presigned URLs**
+- A serverless back-end on **AWS Lambda** (Python) behind **Amazon API Gateway**
+- File metadata, AI labels and extracted text in **Amazon DynamoDB** for content-based search
+- A content-understanding layer using **Amazon Rekognition**, **Amazon Textract** and **Amazon Bedrock** (Claude)
+- The static frontend served over **Amazon CloudFront** (HTTPS), with monitoring in **Amazon CloudWatch**
+- Least-privilege access through **AWS IAM** across every service
 
-You will create two types of endpoints to access Amazon S3: a Gateway VPC endpoint, and an Interface VPC endpoint. These two types of VPC endpoints offer different benefits depending on if you are accessing Amazon S3 from the cloud or your on-premises location
-+ **Gateway** - Create a gateway endpoint to send traffic to Amazon S3 or DynamoDB using private IP addresses.You route traffic from your VPC to the gateway endpoint using route tables.
-+ **Interface** - Create an interface endpoint to send traffic to endpoint services that use a Network Load Balancer to distribute traffic. Traffic destined for the endpoint service is resolved using DNS.
+The project uses a serverless architecture built from:
+- **Storage & sharing**: Amazon S3 for private file storage with presigned URLs; metadata in Amazon DynamoDB
+- **Serverless back-end**: AWS Lambda (Python) behind Amazon API Gateway for all business logic
+- **Content understanding with AI**: Amazon Rekognition (image labels), Amazon Textract (text extraction), Amazon Bedrock/Claude (Vietnamese Q&A and summary over documents), all ready-to-call with no model training
+- **Smart search**: labels and extracted text indexed in DynamoDB to find files by content
+- **Delivery & monitoring**: Amazon CloudFront for HTTPS delivery, Amazon CloudWatch for logs and metrics
+- **Security**: AWS IAM roles following the least-privilege principle
 
 #### Content
 
-1. [Workshop overview](5.1-Workshop-overview)
-2. [Prerequiste](5.2-Prerequiste/)
-3. [Access S3 from VPC](5.3-S3-vpc/)
-4. [Access S3 from On-premises](5.4-S3-onprem/)
-5. [VPC Endpoint Policies (Bonus)](5.5-Policy/)
+1. [Workshop overview](5.1-Workshop-overview/)
+2. [Prerequisite](5.2-Prerequiste/)
+3. [File storage with S3 + presigned URL](5.3-S3-storage/)
+4. [Serverless back-end: Lambda + API Gateway + DynamoDB](5.4-serverless-backend/)
+5. [Monitoring & Security (CloudWatch + IAM)](5.5-Policy/)
 6. [Clean up](5.6-Cleanup/)

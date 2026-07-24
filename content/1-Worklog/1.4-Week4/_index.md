@@ -1,57 +1,29 @@
 ---
 title: "Week 4 Worklog"
-date: 2024-01-01
-weight: 1
+date: 2026-07-06
+weight: 4
 chapter: false
 pre: " <b> 1.4. </b> "
 ---
-{{% notice warning %}} 
-⚠️ **Note:** The following information is for reference purposes only. Please **do not copy verbatim** for your own report, including this warning.
-{{% /notice %}}
 
+### Week 4 objectives
 
-### Week 4 Objectives:
+* Learn Amazon S3: buckets, objects, storage classes and access control.
+* Practice upload/download, versioning and lifecycle policies.
+* Understand S3 as the storage foundation for Data Engineering pipelines.
 
-* Connect and get acquainted with members of First Cloud AI Journey.
-* Understand basic AWS services, how to use the console & CLI.
+### Tasks during the week (06/07 - 10/07/2026)
 
-### Tasks to be carried out this week:
-| Day | Task                                                                                                                                                                                                   | Start Date | Completion Date | Reference Material                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | --------------- | ----------------------------------------- |
-| 2   | - Get acquainted with FCAJ members <br> - Read and take note of internship unit rules and regulations                                                                                                   | 08/11/2025 | 08/11/2025      |
-| 3   | - Learn about AWS and its types of services <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                              | 08/12/2025 | 08/12/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Create AWS Free Tier account <br> - Learn about AWS Console & AWS CLI <br> - **Practice:** <br>&emsp; + Create AWS account <br>&emsp; + Install & configure AWS CLI <br> &emsp; + How to use AWS CLI | 08/13/2025 | 08/13/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Learn basic EC2: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - SSH connection methods to EC2 <br> - Learn about Elastic IP   <br>                            | 08/14/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Practice:** <br>&emsp; + Launch an EC2 instance <br>&emsp; + Connect via SSH <br>&emsp; + Attach an EBS volume                                                                                     | 08/15/2025 | 08/15/2025      | <https://cloudjourney.awsstudygroup.com/> |
+| Day | Task | Start | End | Reference |
+| --- | --- | --- | --- | --- |
+| Mon | Study S3: buckets, object keys, regions; compare storage classes (Standard, IA, Glacier). | 06/07/2026 | 06/07/2026 | [S3](https://docs.aws.amazon.com/s3/) |
+| Tue | Learn bucket policies, ACLs, Block Public Access; configure secure access. | 07/07/2026 | 07/07/2026 | [S3 Security](https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control.html) |
+| Wed | Study versioning, lifecycle rules and prefix folder structure for a data lake. | 08/07/2026 | 08/07/2026 | [S3 Lifecycle](https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html) |
+| Thu | **Practice:** create a bucket, upload files via Console and CLI (`aws s3 cp`, `aws s3 ls`). | 09/07/2026 | 09/07/2026 | [AWS CLI S3](https://docs.aws.amazon.com/cli/latest/reference/s3/) |
+| Fri | **Practice:** enable versioning, create lifecycle rules; organize bucket with `raw/`, `processed/`. | 10/07/2026 | 10/07/2026 | [Cloud Journey](https://cloudjourney.awsstudygroup.com/) |
 
+### Results achieved
 
-### Week 4 Achievements:
-
-* Understood what AWS is and mastered the basic service groups: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Successfully created and configured an AWS Free Tier account.
-
-* Became familiar with the AWS Management Console and learned how to find, access, and use services via the web interface.
-
-* Installed and configured AWS CLI on the computer, including:
-  * Access Key
-  * Secret Key
-  * Default Region
-  * ...
-
-* Used AWS CLI to perform basic operations such as:
-
-  * Check account & configuration information
-  * Retrieve the list of regions
-  * View EC2 service
-  * Create and manage key pairs
-  * Check information about running services
-  * ...
-
-* Acquired the ability to connect between the web interface and CLI to manage AWS resources in parallel.
-* ...
+1. Understood how S3 stores objects and which storage classes suit different data types.
+2. Configured bucket policies, versioning and basic lifecycle policies.
+3. Performed upload/download via Console and CLI; organized folder structure for a data lake.

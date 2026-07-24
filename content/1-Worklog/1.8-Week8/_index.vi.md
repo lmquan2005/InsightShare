@@ -1,59 +1,29 @@
 ---
 title: "Worklog Tuần 8"
-date: 2024-01-01
-weight: 1
+date: 2026-08-03
+weight: 8
 chapter: false
 pre: " <b> 1.8. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
 
+### Mục tiêu tuần 8
 
-### Mục tiêu tuần 8:
+* Tìm hiểu khái niệm streaming data với Kinesis (Data Streams, Firehose).
+* Hoàn thiện Proposal, sơ đồ kiến trúc và tổng kết báo cáo thực tập.
+* Dọn dẹp tài nguyên AWS để tránh phát sinh chi phí.
 
-* Kết nối, làm quen với các thành viên trong First Cloud AI Journey.
-* Hiểu dịch vụ AWS cơ bản, cách dùng console & CLI.
+### Các công việc triển khai trong tuần (03/08 - 07/08/2026)
 
-### Các công việc cần triển khai trong tuần này:
-| Thứ | Công việc                                                                                                                                                                                   | Ngày bắt đầu | Ngày hoàn thành | Nguồn tài liệu                            |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | --------------- | ----------------------------------------- |
-| 2   | - Làm quen với các thành viên FCAJ <br> - Đọc và lưu ý các nội quy, quy định tại đơn vị thực tập                                                                                             | 11/08/2025   | 11/08/2025      |
-| 3   | - Tìm hiểu AWS và các loại dịch vụ <br>&emsp; + Compute <br>&emsp; + Storage <br>&emsp; + Networking <br>&emsp; + Database <br>&emsp; + ... <br>                                            | 12/08/2025   | 12/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 4   | - Tạo AWS Free Tier account <br> - Tìm hiểu AWS Console & AWS CLI <br> - **Thực hành:** <br>&emsp; + Tạo AWS account <br>&emsp; + Cài AWS CLI & cấu hình <br> &emsp; + Cách sử dụng AWS CLI | 13/08/2025   | 13/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 5   | - Tìm hiểu EC2 cơ bản: <br>&emsp; + Instance types <br>&emsp; + AMI <br>&emsp; + EBS <br>&emsp; + ... <br> - Các cách remote SSH vào EC2 <br> - Tìm hiểu Elastic IP   <br>                  | 14/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
-| 6   | - **Thực hành:** <br>&emsp; + Tạo EC2 instance <br>&emsp; + Kết nối SSH <br>&emsp; + Gắn EBS volume                                                                                         | 15/08/2025   | 15/08/2025      | <https://cloudjourney.awsstudygroup.com/> |
+| Thứ | Công việc | Ngày bắt đầu | Ngày hoàn thành | Nguồn tài liệu |
+| --- | --- | --- | --- | --- |
+| T2 | Tìm hiểu Kinesis Data Streams và Firehose; so sánh batch (Glue) vs streaming. | 03/08/2026 | 03/08/2026 | [Kinesis](https://docs.aws.amazon.com/kinesis/) |
+| T3 | Cập nhật Proposal: mô tả pipeline, dịch vụ sử dụng, ước tính chi phí cơ bản. | 04/08/2026 | 04/08/2026 | [Pricing Calculator](https://calculator.aws/) |
+| T4 | Vẽ sơ đồ kiến trúc hoàn chỉnh; bổ sung screenshot kết quả Athena vào báo cáo. | 05/08/2026 | 05/08/2026 | [draw.io](https://draw.io/) |
+| T5 | Viết phần tự đánh giá; review toàn bộ worklog 8 tuần song ngữ EN/VI. | 06/08/2026 | 06/08/2026 |  |
+| T6 | **Dọn dẹp:** terminate EC2/RDS, xóa bucket test, dừng Glue crawler/job; nộp báo cáo FCAJ. | 07/08/2026 | 07/08/2026 | [FCAJ Portal](https://hcm-portal.awsfcaj.com/) |
 
+### Kết quả đạt được
 
-### Kết quả đạt được tuần 8:
-
-* Hiểu AWS là gì và nắm được các nhóm dịch vụ cơ bản: 
-  * Compute
-  * Storage
-  * Networking 
-  * Database
-  * ...
-
-* Đã tạo và cấu hình AWS Free Tier account thành công.
-
-* Làm quen với AWS Management Console và biết cách tìm, truy cập, sử dụng dịch vụ từ giao diện web.
-
-* Cài đặt và cấu hình AWS CLI trên máy tính bao gồm:
-  * Access Key
-  * Secret Key
-  * Region mặc định
-  * ...
-
-* Sử dụng AWS CLI để thực hiện các thao tác cơ bản như:
-
-  * Kiểm tra thông tin tài khoản & cấu hình
-  * Lấy danh sách region
-  * Xem dịch vụ EC2
-  * Tạo và quản lý key pair
-  * Kiểm tra thông tin dịch vụ đang chạy
-  * ...
-
-* Có khả năng kết nối giữa giao diện web và CLI để quản lý tài nguyên AWS song song.
-* ...
-
-
+1. Nắm khái niệm streaming data với Kinesis và phân biệt batch vs streaming.
+2. Hoàn thiện Proposal, sơ đồ kiến trúc và báo cáo thực tập 8 tuần.
+3. Tổng kết hành trình học từ AWS cơ bản đến Data Engineering; dọn dẹp tài nguyên AWS.

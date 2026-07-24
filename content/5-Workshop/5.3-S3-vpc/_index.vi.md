@@ -1,18 +1,23 @@
 ---
-title : "Truy cập S3 từ VPC"
-date : 2024-01-01 
-weight : 3
-chapter : false
-pre : " <b> 5.3. </b> "
+title: "Lưu trữ file với S3 + presigned URL"
+date: 2026-07-29
+weight: 3
+chapter: false
+pre: " <b> 5.3. </b> "
 ---
 
-#### Sử dụng Gateway endpoint
+#### Tổng quan
 
-Trong phần này, bạn sẽ tạo một Gateway endpoint để truy cập Amazon S3 từ một EC2 instance. Gateway endpoint sẽ cho phép tải một object lên S3 bucket mà không cần sử dụng Internet Công cộng. Để tạo endpoint, bạn phải chỉ định VPC mà bạn muốn tạo endpoint và dịch vụ (trong trường hợp này là S3) mà bạn muốn thiết lập kết nối.
+Tầng lưu trữ giữ file người dùng trong một **Amazon S3 bucket private** (không công khai). Việc tải lên/tải xuống đi qua **presigned URL** do back-end sinh ra, nên trình duyệt truyền file **trực tiếp** lên S3 mà không đi vòng qua Lambda, đồng thời bucket vẫn không public.
 
-![overview](/images/5-Workshop/5.3-S3-vpc/diagram2.png)
+Các bước chính của phần này:
+
++ Tạo S3 bucket lưu file (region `ap-southeast-1`).
++ Tắt public access và bật mã hóa.
++ Cấu hình **CORS** để trình duyệt gọi được tới bucket.
++ Sinh **presigned URL** bằng **boto3** và kiểm tra upload/download.
 
 #### Nội dung
 
-- [Tạo gateway endpoint](3.1-create-gwe/)
-- [Test gateway endpoint](3.2-test-gwe/)
+- [Tạo S3 bucket & cấu hình](5.3.1-create-bucket/)
+- [Sinh & test presigned URL](5.3.2-presigned-url/)

@@ -1,40 +1,62 @@
 ---
-title : "Create a gateway endpoint"
-date : 2024-01-01 
-weight : 1
-chapter : false
-pre : " <b> 5.3.1 </b> "
+title: "Create the S3 bucket & configure it"
+date: 2026-07-29
+weight: 1
+chapter: false
+pre: " <b> 5.3.1 </b> "
 ---
 
-1. Open the [Amazon VPC console](https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#Home:)
-2. In the navigation pane, choose **Endpoints**, then click **Create Endpoint**:
+#### Create the S3 bucket
 
-{{% notice note %}}
-You will see **6 existing VPC endpoints** that support **AWS Systems Manager (SSM)**. These endpoints were deployed automatically by the **CloudFormation Templates** for this workshop.
-{{% /notice %}}
+Open the **S3 console** (region `ap-southeast-1`) and choose **Create bucket**:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/endpoints.png)
+- **Bucket name**: `insightshare-files-khang-2352464` (S3 names are globally unique, so a personal suffix avoids collisions).
+- **Region**: Asia Pacific (Singapore) `ap-southeast-1`.
+- **Block Public Access**: keep **all four boxes ticked** (the bucket must stay private).
+- **Bucket Versioning**: **Enable** (keeps previous versions of an object).
 
-3. In the Create endpoint console:
-+ Specify name of the endpoint: ```s3-gwe```
-+ In service category, choose **AWS services**
+After creating it, the bucket opens empty:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/create-s3-gwe1.png)
+![S3 bucket created](/images/5-Workshop/5.3-S3-storage/s3-bucket-created.png)
 
-+ In **Services**, type ```s3``` in the search box and choose the service with type **gateway**
+You can verify the same settings from the CLI:
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/services.png)
+```bash
+aws s3api get-bucket-location --bucket insightshare-files-khang-2352464
 
-+ For VPC, select **VPC Cloud** from the drop-down.
-+ For **Configure route tables**, select the route table that is already associated with **two subnets** (note: this is not the main route table for the VPC, but a second route table created by CloudFormation).
+aws s3api get-public-access-block --bucket insightshare-files-khang-2352464
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/vpc.png)
+aws s3api get-bucket-versioning --bucket insightshare-files-khang-2352464
+```
 
-+ **For Policy**, leave the default option, **Full Access**, to allow full access to the service. You will deploy **a VPC endpoint policy** in a later lab module to demonstrate restricting access to **S3 buckets** based on policies.
+#### Configure CORS
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/policy.png)
+The browser uploads and downloads files directly to S3 through presigned URLs. For that to work, the bucket must allow cross-origin requests. Apply this CORS configuration (demo scale allows any origin; in production restrict `AllowedOrigins` to your web domain):
 
-+ Do not add a tag to the VPC endpoint at this time.
-+ Click **Create endpoint**, then click x after receiving a successful creation message.
+```json
+{
+  "CORSRules": [
+    {
+      "AllowedHeaders": ["*"],
+      "AllowedMethods": ["GET", "PUT"],
+      "AllowedOrigins": ["*"],
+      "ExposeHeaders": ["ETag"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
+```
 
-![endpoint](/images/5-Workshop/5.3-S3-vpc/complete.png)
+Apply and verify it from the CLI:
+
+```bash
+aws s3api put-bucket-cors --bucket insightshare-files-khang-2352464 \
+  --cors-configuration file://cors.json
+
+aws s3api get-bucket-cors --bucket insightshare-files-khang-2352464
+```
+
+#### Notes
+
+- Objects are stored under the prefix `{file_id}/{filename}`, so each file lives in its own folder keyed by a unique id.
+- The Lambda function reads the bucket name `insightshare-files-khang-2352464` from its `BUCKET` environment variable.
