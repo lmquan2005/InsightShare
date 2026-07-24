@@ -1,6 +1,6 @@
 baseURL = "https://lmquan2005.github.io/InsightShare/"
 relativeURLs = false
-canonifyURLs = false
+canonifyURLs = true
 defaultContentLanguage = "en"
 buildFuture = true
 
