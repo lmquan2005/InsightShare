@@ -1,44 +1,18 @@
 ---
 title: "Events Participated"
-date: 2024-01-01
+date: 2026-06-01
 weight: 4
 chapter: false
 pre: " <b> 4. </b> "
 ---
 
-{{% notice warning %}}
-⚠️ **Note:** The information below is for reference purposes only. Please **do not copy it verbatim** for your report, including this warning.
-{{% /notice %}}
+Three events attended during the internship, each organized by the First Cloud AI Journey program and covering a different corner of building AI on AWS.
 
-> In this section, you should list and describe in detail the events you have participated in during your internship or work experience.  
-> 
-> Each event should be presented in the format Event 1, Event 2, Event 3…, along with the following details:
-> * Event name
-> * Date and time
-> * Location (if applicable)
-> * Your role in the event (attendee, event support, speaker, etc.)
-> * A brief description of the event’s content and main activities
-> * Outcomes or value gained (lessons learned, new skills, contribution to the team/project)
-> * This listing helps demonstrate your actual participation as well as the soft skills and experience you have gained from each event.
+### [Event 1 - Saturday Meetup](4.1-Event1/)
+A Saturday community meetup with short member talks on a wide range of topics, from Docker and game networking to WAF with machine learning and personal career stories.
 
-During my internship, I participated in two events. Each one was a memorable experience that provided new, interesting, and useful knowledge, along with gifts and wonderful moments.
+### [Event 2 - FCAJ Community Day, June 2026](4.2-Event2/)
+A monthly community event where speakers from a few companies shared how they build and run AI on AWS, from tools that assist cloud engineers to a Vietnamese voice assistant and HR automation.
 
-### [Event 1](4.1-Event1/)  
-&emsp;**Event Name:** GenAI-powered App-DB Modernization workshop  
-
-&emsp;**Date & Time:** 09:00, August 13, 2025  
-
-&emsp;**Location:** 26th Floor, Bitexco Tower, 02 Hai Trieu Street, Saigon Ward, Ho Chi Minh City  
-
-&emsp;**Role:** Attendee  
-
----
-
-### [Event 2](4.2-Event2/)  
-&emsp;**Event Name:** GenAI-powered App-DB Modernization workshop  
-
-&emsp;**Date & Time:** 09:00, August 13, 2025  
-
-&emsp;**Location:** 26th Floor, Bitexco Tower, 02 Hai Trieu Street, Saigon Ward, Ho Chi Minh City  
-
-&emsp;**Role:** Attendee  
+### [Event 3 - Enterprise Cloud Architectures and Industry Application](4.3-Event3/)
+A study tour at AWS Vietnam where people working in the industry talked about the cloud job market and what the work is really like, featuring speakers from Cloud Kinetics and Renova Cloud.
