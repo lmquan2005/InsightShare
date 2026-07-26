@@ -25,7 +25,3 @@ Một buổi meetup cộng đồng ngày thứ Bảy, các thành viên chia s�
 
 ### Điều em học được
 Điều em thích ở buổi này là các chủ đề rất trộn lẫn, từ Docker tới game networking tới một câu chuyện nghề cá nhân, nên nó ít giống một buổi giảng mà giống việc mọi người chia sẻ thứ họ đang theo. Phần WAF kết hợp machine learning là phần gần với đồ án của em nhất, vì nó cũng ghép một dịch vụ AWS với một lớp AI để làm được điều mà một dịch vụ đơn lẻ không làm được. Câu chuyện nghề của anh Vinh là một nhắc nhở hữu ích rằng con đường vào cloud không phải lúc nào cũng thẳng, và bắt đầu từ chỗ như IT support không phải là ngõ cụt.
-### Photos
-![Attending FCAJ Community Day at the AWS office](/images/4-Event/event2-1.jpg)
-
-![FCAJ Agentic AI Build Workshop on screen](/images/4-Event/event2-2.jpg)

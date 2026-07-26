@@ -1,44 +1,50 @@
 ---
 title: "Chia sẻ, đóng góp ý kiến"
-date: 2024-01-01
+date: 2026-08-06
 weight: 7
 chapter: false
 pre: " <b> 7. </b> "
 ---
-{{% notice warning %}}
-⚠️ **Lưu ý:** Các thông tin dưới đây chỉ nhằm mục đích tham khảo, vui lòng **không sao chép nguyên văn** cho bài báo cáo của bạn kể cả warning này.
-{{% /notice %}}
 
->Tại đây bạn có thể tự do đóng góp ý kiến cá nhân về những trải nghiệm khi tham gia chương trình First Cloud AI Journey, giúp team FCAJ cải thiện những vấn đề còn thiếu sót dựa trên các hạng mục sau:
+Trong kỳ thực tập **First Cloud AI Journey (FCAJ)** tại **AWS Việt Nam** (nhóm **AWS062026**, 15/06 – 07/08/2026), em xây dựng capstone **InsightShare** — trợ lý tài liệu serverless trên AWS với Rekognition, Textract và Bedrock. Dưới đây là góp ý thật của em để team FCAJ cải thiện cho các khóa sau.
 
 ### Đánh giá chung
 
 **1. Môi trường làm việc**  
-Môi trường làm việc rất thân thiện và cởi mở. Các thành viên trong FCAJ luôn sẵn sàng hỗ trợ khi mình gặp khó khăn, kể cả ngoài giờ làm việc. Không gian làm việc gọn gàng, thoải mái, giúp mình tập trung tốt hơn. Tuy nhiên, mình nghĩ có thể bổ sung thêm một số buổi giao lưu hoặc team bonding để mọi người hiểu nhau hơn.
+Văn phòng tầng 26 tòa Bitexco Financial Tower yên tĩnh, trang bị đầy đủ, giúp em tập trung khi làm lab và tham gia sự kiện cộng đồng. Lên văn phòng theo giờ cố định tạo nếp làm việc đều hơn so với tự học ở nhà. Không gian và thương hiệu AWS cũng khiến các buổi meetup và trình bày chuyên nghiệp mà không quá áp lực.
 
 **2. Sự hỗ trợ của mentor / team admin**  
-Mentor hướng dẫn rất chi tiết, giải thích rõ ràng khi mình chưa hiểu và luôn khuyến khích mình đặt câu hỏi. Team admin hỗ trợ các thủ tục, tài liệu và tạo điều kiện để mình làm việc thuận lợi. Mình đánh giá cao việc mentor cho phép mình thử và tự xử lý vấn đề thay vì chỉ đưa đáp án.
+Mentor **Nguyễn Gia Hưng** và team admin theo sát trong suốt kỳ thực tập. Khi em gặp lỗi **IAM `AccessDeniedException`** hoặc **CORS** lúc đưa InsightShare lên Lambda + API Gateway, các anh chị gợi ý hướng tiếp cận thay vì sửa hộ — nhờ vậy em hiểu rõ nguyên nhân sau khi tự xử lý. Team admin cũng hỗ trợ đăng ký Portal, điểm danh và yêu cầu báo cáo đúng hạn.
 
 **3. Sự phù hợp giữa công việc và chuyên ngành học**  
-Công việc mình được giao phù hợp với kiến thức mình đã học ở trường, đồng thời mở rộng thêm những mảng mới mà mình chưa từng được tiếp cận. Nhờ vậy, mình vừa củng cố kiến thức nền tảng, vừa học thêm kỹ năng thực tế.
+Đề tài InsightShare khớp với ngành **Khoa học máy tính**: dùng kiến thức lập trình, mạng và cơ sở dữ liệu ở trường, đồng thời mở rộng sang **cloud và kiến trúc serverless** — phần chương trình đại học chưa dạy sâu. Làm một sản phẩm end-to-end thực tế có ý nghĩa hơn nhiều so với bài tập rời rạc.
 
 **4. Cơ hội học hỏi & phát triển kỹ năng**  
-Trong quá trình thực tập, mình học được nhiều kỹ năng mới như sử dụng công cụ quản lý dự án, kỹ năng làm việc nhóm, và cả cách giao tiếp chuyên nghiệp trong môi trường công ty. Mentor cũng chia sẻ nhiều kinh nghiệm thực tế giúp mình định hướng tốt hơn cho sự nghiệp.
+Em có kinh nghiệm thực hành với **S3, Lambda (Python/boto3), API Gateway, DynamoDB, CloudFront, IAM, CloudWatch**, cùng **Rekognition, Textract và Bedrock**. Em cũng luyện viết tài liệu kỹ thuật song ngữ (worklog, workshop, blog) và deploy báo cáo Hugo lên GitHub Pages. Ba sự kiện FCAJ (Saturday Meetup, Community Day, study tour) bổ sung góc nhìn về sản phẩm AI và định hướng nghề nghiệp.
 
 **5. Văn hóa & tinh thần đồng đội**  
-Văn hóa công ty rất tích cực: mọi người tôn trọng lẫn nhau, làm việc nghiêm túc nhưng vẫn vui vẻ. Khi có dự án gấp, mọi người cùng nhau cố gắng, hỗ trợ không phân biệt vị trí. Điều này giúp mình cảm thấy mình là một phần của tập thể, dù chỉ là thực tập sinh.
+Kiến thức được chia sẻ cởi mở trong các buổi meetup và nhóm cohort — đặt câu hỏi cảm thấy tự nhiên, không ngại. Xem đồng nghiệp trình bày capstone (ví dụ thiết kế IoT + multi-agent) thúc đẩy em hoàn thiện sơ đồ kiến trúc và phần demo của mình.
 
 **6. Chính sách / phúc lợi cho thực tập sinh**  
-Công ty có hỗ trợ phụ cấp thực tập và tạo điều kiện về thời gian linh hoạt khi cần thiết. Ngoài ra, việc được tham gia các buổi đào tạo nội bộ là một điểm cộng lớn.
+Chương trình cho học và thực hành miễn phí trên tài nguyên AWS, có lộ trình lab, sự kiện cộng đồng và hỗ trợ nhận mộc thực tập. Một điểm cần cải thiện: hướng dẫn ban đầu về điểm danh, seal và format báo cáo đang nằm rải rác nhiều trang — gom thành một checklist sẽ rút ngắn tuần đầu.
 
+---
 
 ### Một số câu hỏi khác
-- Điều bạn **hài lòng nhất** trong thời gian thực tập?  
-- Điều bạn nghĩ công ty **cần cải thiện** cho các thực tập sinh sau?  
-- Nếu giới thiệu cho bạn bè, bạn có **khuyên họ thực tập ở đây không**? Vì sao?  
 
+**Điều em hài lòng nhất?**  
+Thấy InsightShare chạy end-to-end trên AWS — upload file, nhận nhãn và văn bản AI, tìm theo nội dung, hỏi đáp tiếng Việt qua Bedrock — sau nhiều tuần debug IAM và serialize DynamoDB.
+
+**Điều cần cải thiện cho thực tập sinh sau?**  
+Một **timeline capstone mẫu** (mốc từng tuần) và một buổi **office hour** tập trung vào lỗi thường gặp (IAM least-privilege, presigned URL, quota Bedrock) sẽ tiết kiệm thời gian ở tuần 5–8.
+
+**Em có khuyên bạn bè tham gia chương trình không?**  
+Có. FCAJ kết hợp học AWS có hệ thống, dự án capstone thật, sự kiện cộng đồng và tiếp xúc trực tiếp với AWS Việt Nam — rất hữu ích cho ai hướng tới cloud hoặc AI engineering.
+
+---
 
 ### Đề xuất & mong muốn
-- Bạn có đề xuất gì để cải thiện trải nghiệm trong kỳ thực tập?  
-- Bạn có muốn tiếp tục chương trình này trong tương lai?
-- Góp ý khác (tự do chia sẻ):
+
+- Thêm buổi chia sẻ định kỳ về **các đề tài capstone mẫu** để thực tập sinh chọn hướng sớm hơn.
+- Giữ format **Community Day** và **study tour** — chúng nối kiến thức kỹ thuật với thực tế ngành.
+- Duy trì và mở rộng chương trình cho các khóa sau; em sẵn sàng gắn bó với cộng đồng FCAJ sau khi tốt nghiệp.
