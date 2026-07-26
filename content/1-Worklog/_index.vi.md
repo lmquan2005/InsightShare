@@ -1,37 +1,25 @@
 ---
-title: "Báo cáo thực tập"
+title: "Nhật ký công việc"
 date: 2026-06-29
 weight: 1
 chapter: false
+pre: " <b> 1. </b> "
 ---
-# Báo cáo thực tập 
 
-### Thông tin sinh viên:
-&emsp; **Họ và tên:** Lại Minh Quân
+Nhật ký hàng tuần trong kỳ thực tập First Cloud AI Journey.
 
-&emsp; **Số điện thoại:** 0346296192
+**Tuần 1**: [Làm quen FCAJ, tổng quan AWS & thiết lập báo cáo Hugo song ngữ](1.1-week1/)
 
-&emsp; **Email:** quangquan2005@gmail.com
+**Tuần 2**: [IAM, EC2, EBS & thực hành quản lý instance](1.2-week2/)
 
-&emsp; **Trường:** Trường Đại học Bách Khoa - ĐHQG TP.HCM
+**Tuần 3**: [VPC, subnet, route table & bảo mật mạng (SG/NACL)](1.3-week3/)
 
-&emsp; **Ngành:** Khoa học máy tính
+**Tuần 4**: [Amazon S3, kiểm soát truy cập, versioning & nền tảng data lake](1.4-week4/)
 
-&emsp; **Group FCAJ:** AWS062026
+**Tuần 5**: [AWS Lambda, mô hình serverless & đưa backend InsightShare lên cloud](1.5-week5/)
 
-&emsp; **Công ty thực tập:** Công ty TNHH Amazon Web Services Viet Nam
+**Tuần 6**: [API Gateway, CORS & hoàn thiện luồng end-to-end trên cloud](1.6-week6/)
 
-&emsp; **Vị trí thực tập:** Workforce Bootcamp - First Cloud AI Journey
+**Tuần 7**: [DynamoDB, lưu metadata & presigned download links](1.7-week7/)
 
-&emsp; **Thời gian thực tập:** Từ ngày 15/06/2026 đến ngày 07/08/2026
-
-![Đặng Thái Khang](/images/avatar.png)
-
-### Nội dung báo cáo
-1.  [Worklog](1-Worklog/)
-2.  [Proposal](2-Proposal/)
-3.  [Các bài blogs đã đăng](3-BlogsPosted/)
-4.  [Các events đã tham gia](4-EventParticipated/)
-5.  [Workshop](5-Workshop/)
-6.  [Tự đánh giá](6-Self-evaluation/)
-7.  [Chia sẻ, đóng góp ý kiến](7-Feedback/)
+**Tuần 8**: [Tầng AI — Rekognition, Textract, Bedrock/Claude — & hoàn thiện báo cáo thực tập](1.8-week8/)

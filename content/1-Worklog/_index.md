@@ -1,37 +1,25 @@
 ---
-title: "Internship Report"
+title: "Worklog"
 date: 2026-06-29
 weight: 1
 chapter: false
+pre: " <b> 1. </b> "
 ---
-# Internship Report
 
-### Student Information:
-&emsp; **Full Name:** Lai Minh Quan
+Weekly log of the First Cloud AI Journey internship.
 
-&emsp; **Phone Number:** 0346296192
+**Week 1**: [FCAJ onboarding, AWS fundamentals & setting up the bilingual Hugo report](1.1-week1/)
 
-&emsp; **Email:** quangquan2005@gmail.com
+**Week 2**: [IAM, EC2, EBS & hands-on instance management](1.2-week2/)
 
-&emsp; **University:** Ho Chi Minh City University of Technology 
+**Week 3**: [VPC, subnets, route tables & network security (SG/NACL)](1.3-week3/)
 
-&emsp; **Major:** Computer Science
+**Week 4**: [Amazon S3, access control, versioning & data lake foundations](1.4-week4/)
 
-&emsp; **FCAJ Group:** AWS062026
+**Week 5**: [AWS Lambda, the serverless model & moving InsightShare backend to the cloud](1.5-week5/)
 
-&emsp; **Internship Company:** Amazon Web Services Viet Nam Company Limited
+**Week 6**: [API Gateway, CORS & completing the cloud end-to-end flow](1.6-week6/)
 
-&emsp; **Internship Position:** Workforce Bootcamp - First Cloud AI Journey
+**Week 7**: [DynamoDB, metadata storage & presigned download links](1.7-week7/)
 
-&emsp; **Internship Duration:** From 15/06/2026 to 07/08/2026
-
-![Lai Minh Quan](/images/avatar.png)
-
-### Report Content
-1.  [Worklog](1-Worklog/)
-2.  [Proposal](2-Proposal/)
-3.  [BlogsPosted](3-BlogsPosted/)
-4.  [Events Participated](4-EventParticipated/)
-5.  [Workshop](5-Workshop/)
-6.  [Self-evaluation](6-Self-evaluation/)
-7.  [Sharing and Feedback](7-Feedback/)
+**Week 8**: [AI layer — Rekognition, Textract, Bedrock/Claude — & finalizing the internship report](1.8-week8/)
