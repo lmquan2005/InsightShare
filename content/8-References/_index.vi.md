@@ -10,7 +10,7 @@ pre: " <b> 8. </b> "
 
 | Nguồn | Liên kết |
 | --- | --- |
-| Mã nguồn | [github.com/XeminoL/InsightShare](https://github.com/XeminoL/InsightShare) |
+| Mã nguồn | [lmquan2005.github.io/InsightShare/](https://github.com/lmquan2005/InsightShare) |
 | Ứng dụng chạy thật | [insightshare.dangthaikhang34.workers.dev](https://insightshare.dangthaikhang34.workers.dev) |
 
 ### Tài liệu
