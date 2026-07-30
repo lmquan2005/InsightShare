@@ -38,7 +38,7 @@ InsightShare follows a fully serverless flow:
 4. **AI analysis**: after upload, Lambda calls the AI layer, **Rekognition** labels images and **Textract** extracts document text; labels and text are saved into **DynamoDB** for content-based search. A separate `ask` endpoint then sends the stored text to **Amazon Bedrock** (Claude) to answer questions or summarize the document in Vietnamese.
 5. **Monitoring & security**: **Amazon CloudWatch** collects logs and metrics; an **IAM Role** grants least-privilege access to each service.
 
-![InsightShare Architecture](/images/5-Workshop/5.1-Workshop-overview/insightshare_architecture-v2.png)
+![InsightShare Architecture](/images/5-Workshop/5.1-Workshop-overview/architectur.png)
 
 #### AWS services used
 

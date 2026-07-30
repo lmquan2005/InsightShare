@@ -38,7 +38,7 @@ InsightShare hoạt động theo luồng serverless hoàn toàn:
 4. **Phân tích AI**: sau khi upload, Lambda gọi lớp AI, **Rekognition** gắn nhãn ảnh và **Textract** trích văn bản tài liệu; nhãn và văn bản được lưu vào **DynamoDB** để tìm kiếm theo nội dung. Một endpoint `ask` riêng gửi phần văn bản đã lưu tới **Amazon Bedrock** (Claude) để trả lời câu hỏi hoặc tóm tắt tài liệu bằng tiếng Việt.
 5. **Giám sát & bảo mật**: **Amazon CloudWatch** thu thập log và số liệu; **IAM Role** cấp quyền tối thiểu cho từng dịch vụ.
 
-![Kiến trúc InsightShare](/images/5-Workshop/5.1-Workshop-overview/insightshare_architecture-v2.png)
+![Kiến trúc InsightShare](/images/5-Workshop/5.1-Workshop-overview/architectur.png)
 
 #### Các dịch vụ AWS sử dụng
 
