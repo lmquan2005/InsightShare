@@ -1,27 +1,42 @@
 ---
 title: "Blog 2"
-date: 2026-07-24
+date: 2026-07-11
 weight: 2
 chapter: false
 pre: " <b> 3.2. </b> "
 ---
+# Building multi-step applications with AWS Lambda Durable Functions
 
-# AWS STEP FUNCTIONS: ORCHESTRATE MULTI-STEP WORKFLOWS WITHOUT COMPLEX CODE
+## Summary
+AWS Lambda Durable Functions build multi-step applications and AI workflows inside Lambda, with state management and failure recovery handled by the runtime instead of a separate state store.
 
-When learning AWS, Lambda often handles one task at a time. But once a workflow grows — validate → process → send email → update DB — Lambda code quickly turns into spaghetti. AWS Step Functions bundles those steps into a clear flow with built-in retry and error handling.
+## Main content
 
-Key points to know:
+![Lambda Durable Functions diagram](/images/3-Blog/blog2_architecture.png)
 
-* **What Step Functions is:** a serverless workflow orchestration service; you define steps (states) in JSON (Amazon States Language) and Step Functions runs them sequentially or in parallel with automatic retries on failure.
-* **Common state types:** Task (invoke Lambda, ECS, SNS, DynamoDB, Bedrock…); Choice (if/else branching); Parallel (run multiple branches at once); Wait (delay); Fail/Succeed (end the workflow).
-* **Two workflow types:** Standard (runs up to 1 year, exactly-once) suits order processing, ETL and approval flows; Express (up to 5 minutes, high throughput) suits IoT, streaming and real-time workloads.
-* **Order processing use case:** API receives an order → Step Functions starts → Lambda validates → Choice checks validity → process + SES email in parallel, or Fail + SNS error notification.
-* **Compared to plain Lambda:** multi-step logic in one function is hard to read and maintain; Step Functions offers a visual graph, built-in retry/error handling, native Parallel states and per-step execution history in the console.
-* **When to use it:** 3+ steps or clear retry/branching needs; Standard for long workflows, Express for short real-time flows; inspect the execution graph in the console for easier debugging than parsing Lambda logs.
+### The problem
+Building a long-running flow (an approval chain, a multi-step AI pipeline) forced developers to write a lot of code to store state, handle errors and wire services together, laborious and error-prone.
 
-Step Functions does not replace Lambda — it orchestrates Lambda. When a workflow outgrows a single function, try Step Functions: less code, easier maintenance and retry/error handling included.
+### The solution
+Durable Functions bring that capability into Lambda with two main primitives:
+1. **Steps:** each step is automatically checkpointed and retried on failure, using a "checkpoint and replay" mechanism.
+2. **Waits:** you can pause execution for up to a year without paying for compute while waiting, ideal for waiting on human approval or an external API response.
 
-**References:**
+It also has built-in idempotency (calling the same execution name returns the existing result, avoiding duplicate runs) and integrates with EventBridge to emit execution state.
 
-* [AWS Step Functions – AWS Documentation](https://docs.aws.amazon.com/step-functions/)
-* [Amazon States Language – AWS Documentation](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-amazon-states-language.html)
+### Notable points
+- No need to build your own state storage or retry infrastructure.
+- Long pauses incur no compute cost while waiting.
+- Supports recent Node.js and Python versions; deployable with AWS SAM.
+
+### Takeaways
+For long business flows or AI workflows that need to wait, Durable Functions handle state and retries instead of a separate state store, and a human-in-the-loop approval step does not keep paying for idle compute.
+
+## Reference
+[Build multi-step applications and AI workflows with AWS Lambda durable functions](https://aws.amazon.com/blogs/aws/build-multi-step-applications-and-ai-workflows-with-aws-lambda-durable-functions/) (AWS News Blog)
+
+## Post link
+https://www.facebook.com/share/p/1D53oYGQmP/
+
+## Images
+![AWS Study Group post screenshot](/images/3-Blog/blog2_post.png)

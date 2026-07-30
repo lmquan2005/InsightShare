@@ -1,55 +1,42 @@
 ---
 title: "Blog 1"
-date: 2026-07-24
+date: 2026-06-20
 weight: 1
 chapter: false
 pre: " <b> 3.1. </b> "
 ---
+# Hệ thống tóm tắt cuộc họp bằng AI với Amazon Bedrock và Amazon Transcribe
 
-# AMAZON SQS: HÀNG ĐỢI TIN NHẮN GIÚP HỆ THỐNG AWS KHÔNG BỊ "NGHẼN"
+## Tóm tắt
+Một hệ thống serverless của AWS biến file ghi âm cuộc họp thành bản tóm tắt có cấu trúc, dựng từ nhiều dịch vụ AWS và tính phí theo lượt dùng.
 
-Amazon SQS (Simple Queue Service) là dịch vụ hàng đợi tin nhắn serverless trên AWS, giúp các thành phần trong hệ thống gửi và nhận message bất đồng bộ mà không cần kết nối trực tiếp. Thay vì Service A gọi thẳng Service B, flow sẽ là Service A → SQS → Service B — giảm coupling, hấp thụ traffic spike và không cần tự host RabbitMQ/Redis trên EC2.
+## Nội dung chính
 
-#### Hai loại queue
+![Sơ đồ kiến trúc hệ thống tóm tắt cuộc họp](/images/3-Blog/blog1_architecture.png)
 
-| Loại | Đặc điểm | Phù hợp khi |
-| --- | --- | --- |
-| **Standard Queue** | Throughput cao, at-least-once delivery, có thể trùng/thứ tự lệch | Xử lý email, log, analytics |
-| **FIFO Queue** | Đúng thứ tự, exactly-once processing, throughput thấp hơn | Thanh toán, đặt hàng, chat thread |
+### Vấn đề
+Nhiều tổ chức có nhiều dữ liệu âm thanh (cuộc họp, phỏng vấn) nhưng khó khai thác thông tin hữu ích: âm thanh là dữ liệu phi cấu trúc và nghe lại tốn thời gian.
 
-Ngoài ra còn có **Dead Letter Queue (DLQ)** — hàng đợi chứa message lỗi sau nhiều lần retry; **Visibility Timeout** — thời gian message "ẩn" khỏi queue khi đang được xử lý; **Long Polling** — giảm số lần gọi API rỗng, tiết kiệm chi phí.
+### Giải pháp
+Hệ thống xử lý theo luồng tự động:
+1. **Amazon Transcribe** chuyển giọng nói trong file ghi âm thành văn bản.
+2. **Amazon Bedrock** (mô hình Claude) đọc văn bản và sinh bản tóm tắt có cấu trúc: các bên liên quan, mục tiêu, hạng mục hành động và yêu cầu kỹ thuật.
+3. **AWS Step Functions** điều phối toàn bộ luồng, **Lambda** xử lý từng bước, dữ liệu lưu ở **S3** và **DynamoDB**.
+4. Giao diện là ứng dụng React, xác thực qua **Cognito**, truy vấn dữ liệu qua **AppSync** (GraphQL).
 
-#### Vì sao không nên gọi API/Lambda trực tiếp?
+### Kết quả
+- Bản tóm tắt gọn, có cấu trúc rõ ràng thay vì phải nghe lại cả cuộc họp.
+- Kiến trúc serverless, tự động mở rộng theo tải.
+- Bài gốc cho biết chi phí trung bình khoảng 0,98 USD mỗi cuộc họp.
 
-| Cách làm | Vấn đề |
-| --- | --- |
-| API gọi thẳng Lambda xử lý nặng | User phải chờ, timeout dễ xảy ra |
-| Tự host RabbitMQ/Redis trên EC2 | Phải quản lý server, HA, backup |
-| Retry thủ công trong code | Logic phức tạp, khó debug |
-| Scale đồng thời khi traffic spike | Downstream service bị quá tải |
+### Bài học rút ra
+Yêu cầu mô hình sinh bản tóm tắt theo cấu trúc định sẵn (bên liên quan, hành động, yêu cầu) cho kết quả dùng được trực tiếp thay vì một đoạn văn chung chung. Bài cũng cho thấy Transcribe, Bedrock, Step Functions, Lambda, S3 và DynamoDB ghép với nhau trong một luồng ra sao.
 
-SQS giải quyết bằng cách tách producer và consumer: producer chỉ đẩy message vào queue → phản hồi nhanh; consumer (Lambda, EC2, ECS…) xử lý khi rảnh, scale theo số message; message không mất khi consumer tạm down; spike traffic được "hấp thụ" bởi queue thay vì làm sập backend.
+## Nguồn tham khảo
+[Build an AI-powered automated summarization system with Amazon Bedrock and Amazon Transcribe](https://aws.amazon.com/blogs/machine-learning/build-an-ai-powered-automated-summarization-system-with-amazon-bedrock-and-amazon-transcribe-using-terraform/) (AWS Machine Learning Blog)
 
-Các điểm chính cần nắm:
+## Link bài đăng
+https://www.facebook.com/share/p/1DGNJvxwZz/
 
-* **Use case e-commerce:** API nhận đơn hàng → lưu DynamoDB → đẩy SQS → trả 201 ngay; Lambda consumer xử lý ngầm gửi email, cập nhật kho, sync CRM.
-* **Integration phổ biến:** Lambda event source mapping, SNS fan-out → SQS, EventBridge route event, EC2/ECS worker polling, Step Functions.
-* **Best practices:** luôn gắn DLQ; viết idempotent consumer (at-least-once); cấu hình VisibilityTimeout phù hợp; dùng long polling; monitor CloudWatch (`ApproximateNumberOfMessagesVisible`, `AgeOfOldestMessage`).
-
-#### Chi phí
-
-| Hạng mục | Giá |
-| --- | --- |
-| Free tier | 1 triệu request/tháng (permanent) |
-| Standard queue | ~$0.40 / triệu request |
-| FIFO queue | ~$0.50 / triệu request |
-| Duy trì queue | Miễn phí |
-| Data transfer trong cùng region | Miễn phí |
-
-SQS là lớp đệm nền tảng cho kiến trúc event-driven trên AWS. Nếu mới học serverless, nên thử flow đơn giản: API Gateway → Lambda (producer) → SQS → Lambda (consumer) để thấy rõ sự khác biệt giữa xử lý đồng bộ và bất đồng bộ.
-
-**Tài liệu tham khảo:**
-
-* [Amazon SQS – AWS Documentation](https://docs.aws.amazon.com/sqs/)
-* [SQS Best Practices – AWS Documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-best-practices.html)
-* [How AutoScout24 built a Bot Factory with Amazon Bedrock](https://aws.amazon.com/blogs/)
+## Hình ảnh
+![Ảnh chụp bài đăng trên AWS Study Group](/images/3-Blog/blog1_post.png)

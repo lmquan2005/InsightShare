@@ -1,30 +1,42 @@
 ---
 title: "Blog 1"
-date: 2026-07-24
+date: 2026-06-20
 weight: 1
 chapter: false
 pre: " <b> 3.1. </b> "
 ---
+# An AI meeting summarization system with Amazon Bedrock and Amazon Transcribe
 
-# AMAZON SQS: MESSAGE QUEUES THAT KEEP AWS SYSTEMS FROM BOTTLENECKING
+## Summary
+An AWS serverless system that turns meeting recordings into structured summaries, built from several AWS services with per-use billing.
 
-Amazon SQS (Simple Queue Service) is a fully managed, serverless message queue on AWS. Components send and receive messages asynchronously without direct coupling. Instead of Service A calling Service B directly, the flow is Service A → SQS → Service B — reducing coupling, absorbing traffic spikes and eliminating the need to self-host RabbitMQ/Redis on EC2.
+## Main content
 
-Key points to know:
+![Meeting summarization architecture](/images/3-Blog/blog1_architecture.png)
 
-* **Two queue types:** Standard (high throughput, at-least-once delivery) suits email/logs/analytics; FIFO (strict ordering, exactly-once processing) suits payments and order processing.
-* **Important concepts:** Dead Letter Queue (DLQ) holds failed messages after retries; Visibility Timeout hides a message while it is being processed; Long Polling reduces empty API calls.
-* **Why not call Lambda/API directly:** users wait for heavy processing (timeouts are common); traffic spikes overload downstream services; manual retries make code complex and hard to debug.
-* **How SQS helps:** the producer only enqueues a message and responds quickly; consumers (Lambda, EC2, ECS…) process when ready and scale with message volume; messages are not lost when a consumer is temporarily down.
-* **E-commerce use case:** the API accepts an order → saves to DynamoDB → pushes to SQS → returns 201 immediately; a Lambda consumer sends email, updates inventory and syncs CRM in the background.
-* **Common integrations:** Lambda event source mapping, SNS fan-out → SQS, EventBridge routing, EC2/ECS worker polling, Step Functions.
-* **Best practices:** always attach a DLQ; write idempotent consumers (at-least-once); set VisibilityTimeout to match real processing time; use long polling; monitor CloudWatch (`ApproximateNumberOfMessagesVisible`, `AgeOfOldestMessage`).
-* **Cost:** free tier of 1 million requests/month; Standard ~$0.40 per million requests; no queue maintenance fee within the same region.
+### The problem
+Organizations have a lot of audio data (meetings, interviews) but struggle to extract useful information: audio is unstructured and replaying it is time-consuming.
 
-SQS is a foundational buffer for event-driven architectures on AWS. If you are new to serverless, try a simple flow: API Gateway → Lambda (producer) → SQS → Lambda (consumer) to see the difference between synchronous and asynchronous processing.
+### The solution
+The system processes in an automated flow:
+1. **Amazon Transcribe** converts the speech in the recording into text.
+2. **Amazon Bedrock** (a Claude model) reads the text and generates a structured summary: stakeholders, objectives, action items and technical requirements.
+3. **AWS Step Functions** orchestrates the whole flow, **Lambda** handles each step, and data is stored in **S3** and **DynamoDB**.
+4. The frontend is a React app, authenticated with **Cognito**, querying data via **AppSync** (GraphQL).
 
-**References:**
+### Results
+- A concise, clearly structured summary instead of replaying the whole meeting.
+- A serverless architecture that scales automatically with load.
+- The source article reports an average cost of about $0.98 per meeting.
 
-* [Amazon SQS – AWS Documentation](https://docs.aws.amazon.com/sqs/)
-* [SQS Best Practices – AWS Documentation](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-best-practices.html)
-* [How AutoScout24 built a Bot Factory with Amazon Bedrock](https://aws.amazon.com/blogs/)
+### Takeaways
+Asking the model for a summary in a fixed structure (stakeholders, actions, requirements) gives directly usable output rather than a generic paragraph. The post also shows how Transcribe, Bedrock, Step Functions, Lambda, S3 and DynamoDB fit together in one flow.
+
+## Reference
+[Build an AI-powered automated summarization system with Amazon Bedrock and Amazon Transcribe](https://aws.amazon.com/blogs/machine-learning/build-an-ai-powered-automated-summarization-system-with-amazon-bedrock-and-amazon-transcribe-using-terraform/) (AWS Machine Learning Blog)
+
+## Post link
+https://www.facebook.com/share/p/1DGNJvxwZz/
+
+## Images
+![AWS Study Group post screenshot](/images/3-Blog/blog1_post.png)
